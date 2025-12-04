@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "InfinityTech",
+    "description": "This is a blog website for the infinitytech community where you can find blogs articles in the tech era",
+    "link": "https://github.com/Likeur/infinityTech",
+    "technologies": [
+      "Tailwind CSS",
+      "JavaScript"
+    ],
+    "category": "Web Development",
+    "author": "Likeur cd",
+    "language": "JavaScript"
+  },
+  {
+    "id": 3,
+    "name": "Tailark",
+    "description": "Tailark est une boîte à outils de conception et de composants destinée aux fondateurs et aux équipes souhaitant déployer plus rapidement des sites web marketing modernes. Elle propose une vaste collection de blocs responsifs et prêts pour la production, développés avec shadcn/ui, Tailwind CSS, Next.js et TypeScript.",
+    "link": "https://github.com/tailark/blocks",
+    "technologies": [
+      "TypeScript",
+      "Tailwind CSS",
+      "Next.js",
+      "shadcn/ui"
+    ],
+    "category": "Web Design",
+    "author": "Méschac Irung",
+    "language": "TypeScript"
+  },
+  {
+    "id": 2,
+    "name": "BuyMeACoffee-Africa",
+    "description": "Donnez vie à vos idées. Soutenez et collaborez avec les talents africains.",
+    "link": "https://github.com/2MJ-DEV/BuyMeACoffee-Africa",
+    "technologies": [
+      "JavaScript",
+      "Tailwind CSS",
+      "Node.js"
+    ],
+    "category": "App web",
+    "author": "Jules MUKADI",
+    "language": "JavaScript"
+  }
+]
