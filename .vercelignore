@@ -1,5 +1,4 @@
 # Ignore les fichiers de développement
-context/
 config/
 app/(auth)/
 
