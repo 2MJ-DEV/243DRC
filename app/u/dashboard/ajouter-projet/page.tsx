@@ -47,7 +47,7 @@ export default function AjouterProjetPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const user = auth.currentUser;
+    const user = auth?.currentUser;
     if (!user) {
       alert("Vous devez être connecté pour ajouter un projet");
       return;
@@ -88,7 +88,9 @@ export default function AjouterProjetPage() {
       fetchGithubStats(formData.repoUrl).then(({ stars, forks }) => {
         // Mettre à jour le document avec les vraies stats
         import("firebase/firestore").then(({ doc, updateDoc }) => {
-          updateDoc(doc(db, "projects", docRef.id), { stars, forks });
+          if (db) {
+            updateDoc(doc(db!, "projects", docRef.id), { stars, forks });
+          }
         });
       }).catch(err => {
         console.error("Erreur lors de la mise à jour des stats:", err);
@@ -172,10 +174,10 @@ export default function AjouterProjetPage() {
             </div>
 
             <div>
-              <Label htmlFor="authorName">Nom de l'auteur</Label>
+              <Label htmlFor="authorName">Nom de l&#39;auteur</Label>
               <Input
                 id="authorName"
-                placeholder={auth.currentUser?.displayName || "Votre nom"}
+                placeholder={auth?.currentUser?.displayName || "Votre nom"}
                 value={formData.authorName}
                 onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
               />

@@ -70,6 +70,11 @@ export default function AuthButton() {
   };
 
   const handleSignOut = async () => {
+    if (!auth) {
+      console.error("Auth non initialisé");
+      return;
+    }
+  
     try {
       await signOut(auth);
     } catch (error) {

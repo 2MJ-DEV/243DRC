@@ -30,12 +30,17 @@ export default function ExplorerPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      router.push("/");
+      return;
+    }
+    
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
         router.push("/");
         return;
       }
-      loadAllProjects();
+      setLoading(false);
     });
 
     return () => unsubscribe();

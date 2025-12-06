@@ -17,6 +17,11 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      router.push("/");
+      return;
+    }
+    
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (!currentUser) {
         router.push("/");

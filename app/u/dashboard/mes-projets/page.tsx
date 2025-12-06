@@ -6,8 +6,9 @@ import { auth, db } from "@/lib/firebaseClient";
 import { collection, query, where, getDocs, deleteDoc, doc, orderBy } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, Edit, ExternalLink, Star, GitFork } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Star, GitFork } from "lucide-react";
 import Link from "next/link";
+import { User } from "firebase/auth";
 
 interface Project {
   id: string;
@@ -24,15 +25,20 @@ interface Project {
 export default function MesProjetPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      router.push("/");
+      return;
+    }
+    
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
         router.push("/");
         return;
       }
-      loadProjects(user.uid);
     });
 
     return () => unsubscribe();

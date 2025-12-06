@@ -19,6 +19,11 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   useEffect(() => {
+    if (!auth) {
+      router.push("/");
+      return;
+    }
+    
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (!currentUser) {
         router.push("/");
@@ -32,6 +37,11 @@ export default function DashboardLayout({
   }, [router]);
 
   const handleSignOut = async () => {
+    if (!auth) {
+      console.error("Auth non initialisé");
+      return;
+    }
+  
     try {
       await signOut(auth);
       router.push("/");

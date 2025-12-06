@@ -26,6 +26,11 @@ export default function ProfilPage() {
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      router.push("/");
+      return;
+    }
+    
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (!currentUser) {
         router.push("/");

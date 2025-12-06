@@ -5,6 +5,11 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 export default function SignIn() {
   const signInWithGoogle = async () => {
+    if (!auth) {
+      console.error("Auth non initialisé");
+      return;
+    }
+
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
