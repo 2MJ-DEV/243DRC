@@ -8,7 +8,7 @@ import { collection, query, where, getDocs, orderBy, limit } from "firebase/fire
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Plus, Search, FolderGit2 } from "lucide-react";
+import { Plus, Search, FolderGit2, FolderGit2Icon, GitPullRequestCreateArrow, UsersRound } from "lucide-react";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -76,13 +76,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* En-tête de la page */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">
-          Bienvenue, {user.displayName || "Développeur"} ! 👋
-        </h1>
-        <p className="text-muted-foreground">Gérez vos projets et explorez la communauté 243 DRC</p>
-      </div>
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -93,6 +86,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-primary">{userProjects.length}</p>
+                <FolderGit2Icon />
               </CardContent>
             </Card>
 
@@ -103,6 +97,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-primary">0</p>
+                <GitPullRequestCreateArrow />
               </CardContent>
             </Card>
 
@@ -113,32 +108,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-4xl font-bold text-primary">0</p>
+                <UsersRound />
               </CardContent>
             </Card>
         </div>
-
-      {/* Actions rapides */}
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Actions rapides</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link href="/u/dashboard/ajouter-projet">
-            <Card className="h-full hover:bg-accent/50 transition-colors cursor-pointer">
-              <CardContent className="flex items-center justify-center gap-3 h-24">
-                <Plus className="w-6 h-6" />
-                <span className="text-lg font-medium">Ajouter un projet</span>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/u/dashboard/explorer">
-            <Card className="h-full hover:bg-accent/50 transition-colors cursor-pointer">
-              <CardContent className="flex items-center justify-center gap-3 h-24">
-                <Search className="w-6 h-6" />
-                <span className="text-lg font-medium">Explorer des projets</span>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      </div>
 
       {/* Projets récents */}
       <div>
@@ -150,13 +123,13 @@ export default function DashboardPage() {
         </div>
         {userProjects.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center">
+            <CardContent className="py-12 flex flex-col items-center text-center">
               <FolderGit2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <p className="text-muted-foreground mb-4">
-                Vous n'avez pas encore de projets
+                Vous n&#39;avez pas encore de projets
               </p>
               <Link href="/u/dashboard/ajouter-projet">
-                <Button>Ajouter votre premier projet</Button>
+                <Button variant="rdc">Ajouter votre premier projet</Button>
               </Link>
             </CardContent>
           </Card>

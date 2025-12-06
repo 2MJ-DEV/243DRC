@@ -6,6 +6,7 @@ import ScrollLinked from "@/components/ui/ScrollLinked";
 import LenisScroll from "@/components/ui/LenisScroll";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { ToastProvider } from "@/components/ToastContainer";
 import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
@@ -32,20 +33,22 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
         suppressHydrationWarning
       >
-        {!isDashboard && <Navbar />}
+        <ToastProvider>
+          {!isDashboard && <Navbar />}
 
-        <main>
-          {!isDashboard ? (
-            <LenisScroll>
-              <ScrollLinked />
-              {children}
-            </LenisScroll>
-          ) : (
-            children
-          )}
-        </main>
+          <main>
+            {!isDashboard ? (
+              <LenisScroll>
+                <ScrollLinked />
+                {children}
+              </LenisScroll>
+            ) : (
+              children
+            )}
+          </main>
 
-        {!isDashboard && <Footer />}
+          {!isDashboard && <Footer />}
+        </ToastProvider>
       </body>
     </html>
   );
