@@ -1,10 +1,12 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ScrollLinked from "@/components/ui/ScrollLinked";
 import LenisScroll from "@/components/ui/LenisScroll";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,31 +18,34 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "243 DRC",
-  description: "A Next.js project template with Tailwind CSS and App Router.",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/u");
+
   return (
     <html lang="fr">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
+        suppressHydrationWarning
       >
-        <Navbar />
+        {!isDashboard && <Navbar />}
 
         <main>
-          <LenisScroll>
-            <ScrollLinked />
-            {children}
-          </LenisScroll>
+          {!isDashboard ? (
+            <LenisScroll>
+              <ScrollLinked />
+              {children}
+            </LenisScroll>
+          ) : (
+            children
+          )}
         </main>
 
-        <Footer />
+        {!isDashboard && <Footer />}
       </body>
     </html>
   );

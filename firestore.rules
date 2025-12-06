@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Règles pour la collection users
+    match /users/{userId} {
+      // Permettre la lecture à tous les utilisateurs authentifiés
+      allow read: if request.auth != null;
+      
+      // Permettre l'écriture seulement au propriétaire du document
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Règles pour la collection projects
+    match /projects/{projectId} {
+      // Permettre la lecture à tous les utilisateurs authentifiés
+      allow read: if request.auth != null;
+      
+      // Permettre la création à tous les utilisateurs authentifiés
+      allow create: if request.auth != null 
+                    && request.resource.data.authorId == request.auth.uid;
+      
+      // Permettre la modification et suppression seulement au propriétaire
+      allow update, delete: if request.auth != null 
+                            && resource.data.authorId == request.auth.uid;
+    }
+  }
+}

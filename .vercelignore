@@ -1,0 +1,8 @@
+# Ignore les fichiers de développement
+context/
+config/
+app/(auth)/
+
+# Fichiers temporaires
+*.log
+.DS_Store

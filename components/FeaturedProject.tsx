@@ -58,7 +58,7 @@ function ProjectCard({ project }: ProjectCardProps) {
         {/* IMAGE GITHUB avec padding interne */}
         {imageUrl && (
           <div className="p-2">
-            <div className="relative hover:border border-[#007FFF] w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-sm">
+            <div className="relative hover:border border-[#007FFF] w-full h-48 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-sm">
               <Image
                 src={imageUrl}
                 alt={project.name}
