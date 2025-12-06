@@ -116,6 +116,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    @apply overflow-x-hidden;
+    max-width: 100vw;
+  }
   body {
     @apply bg-background text-foreground;
   }
@@ -127,4 +132,34 @@
   html::-webkit-scrollbar {
     display: none; /* Chrome, Safari et Opera */
   }
+}
+
+/* Animation pour les orbs flottants */
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  75% {
+    transform: translate(20px, 10px) scale(1.05);
+  }
+}
+
+/* Animation pour l'effet shimmer du grid */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-grid-shine {
+  animation: shimmer 8s ease-in-out infinite;
 }

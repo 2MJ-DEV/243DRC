@@ -7,17 +7,17 @@ const Footer = () => {
           <div className="bg-[#EFDA5B]" />
           <div className="bg-[#CA3E4B]" />
         </div>
-        <div className="flex justify-between py-4 max-w-6xl mx-auto text-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 py-4 px-4 max-w-6xl mx-auto text-sm">
           <div className="">
             <span>
-              <a href="http://julesmukadi.me">2MJ-DEV</a>
+              <a href="http://julesmukadi.me" className="hover:underline">2MJ-DEV</a>
             </span>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
             <span>Alimenté par</span>
-            <div className="">
+            <div className="flex">
               <span className="text-[#EFDA5B]">243</span>
-            <span className="text-[#007FFF]">RDC</span>
+              <span className="text-[#007FFF]">RDC</span>
             </div>
           </div>
         </div>

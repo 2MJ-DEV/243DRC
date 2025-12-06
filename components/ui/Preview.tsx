@@ -5,7 +5,7 @@ const Preview = () => {
     <div>
       {/* Image responsive */}
       <div className="relative aspect-video w-full">
-        <Image src="/Preview.png" alt="Preview" fill className="object-cover" />
+        <Image src="/Preview-img.png" alt="Preview" fill className="object-cover" />
       </div>
     </div>
   );

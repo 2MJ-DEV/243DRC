@@ -6,7 +6,9 @@ import ScrollLinked from "@/components/ui/ScrollLinked";
 import LenisScroll from "@/components/ui/LenisScroll";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { ToastProvider } from "@/components/ToastContainer";
+import { BannerProvider } from "@/context/BannerContext";
 import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
@@ -33,7 +35,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
         suppressHydrationWarning
       >
-        <ToastProvider>
+        <BannerProvider>
+          <ToastProvider>
+            <AnnouncementBanner
+            message="Bienvenue sur 243 DRC ! Plateforme open source pour développeurs congolais"
+            type="info"
+            link={{
+              text: "En savoir plus",
+              href: "/about"
+            }}
+            dismissible={false}
+          />
+          
           {!isDashboard && <Navbar />}
 
           <main>
@@ -48,7 +61,8 @@ export default function RootLayout({
           </main>
 
           {!isDashboard && <Footer />}
-        </ToastProvider>
+          </ToastProvider>
+        </BannerProvider>
       </body>
     </html>
   );
