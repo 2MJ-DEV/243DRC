@@ -1,5 +1,3 @@
-# 243 DRC - Plateforme Open Source pour Développeurs Congolais 🇨🇩
-
 <img width="960" height="540" alt="Preview page" src="/public/Previews.png" />
 
 [![Contributors](https://img.shields.io/github/contributors/2MJ-DEV/243DRC)](https://github.com/2MJ-DEV/243DRC/graphs/contributors)
@@ -7,21 +5,21 @@
 [![Issues](https://img.shields.io/github/issues/2MJ-DEV/243DRC)](https://github.com/2MJ-DEV/243DRC/issues)
 [![License](https://img.shields.io/github/license/2MJ-DEV/243DRC)](./LICENSE)
 
-## 🎯 À propos du projet
+## À propos du projet
 
 **243 DRC** est une plateforme communautaire dédiée aux développeurs de la République Démocratique du Congo. Elle permet de :
 
-- 🔍 **Découvrir** des projets open source créés par des développeurs congolais
-- 🚀 **Partager** vos propres projets et recevoir des feedbacks de la communauté
-- 👥 **Se connecter** avec d'autres développeurs talentueux de la RDC
-- 📈 **Suivre** les statistiques de vos projets (stars, forks) directement depuis GitHub
-- 💼 **Construire** votre portfolio de développeur avec un profil personnalisé
+-  **Découvrir** des projets open source créés par des développeurs congolais
+-  **Partager** vos propres projets et recevoir des feedbacks de la communauté
+-  **Se connecter** avec d'autres développeurs talentueux de la RDC
+-  **Suivre** les statistiques de vos projets (stars, forks) directement depuis GitHub
+-  **Construire** votre portfolio de développeur avec un profil personnalisé
 
 ### Pourquoi 243 DRC ?
 
 Le code téléphonique de la RDC est le **+243**. Ce projet vise à créer un hub centralisé pour valoriser le talent tech congolais et favoriser la collaboration au sein de la communauté.
 
-## ✨ Fonctionnalités
+##  Fonctionnalités
 
 ### Pour tous les utilisateurs
 - Navigation fluide avec smooth scroll (Lenis)
@@ -39,7 +37,7 @@ Le code téléphonique de la RDC est le **+243**. Ce projet vise à créer un hu
 - Synchronisation des données en arrière-plan
 - Support des images OpenGraph
 
-## 🛠️ Technologies utilisées
+##  Technologies utilisées
 
 ### Frontend
 - **Next.js 16** - Framework React avec App Router
@@ -60,7 +58,7 @@ Le code téléphonique de la RDC est le **+243**. Ce projet vise à créer un hu
 - **Vercel** - Déploiement et hébergement
 - **ESLint** - Linting du code
 
-## 📋 Prérequis
+##  Prérequis
 
 Avant de commencer, assurez-vous d'avoir installé :
 
@@ -85,7 +83,7 @@ choco install pnpm
 scoop install pnpm
 ```
 
-## 🚀 Installation et démarrage
+##  Installation et démarrage
 
 ### 1. Cloner le dépôt
 
@@ -123,7 +121,7 @@ pnpm dev
 
 Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
-## 📁 Structure du projet
+##  Structure du projet
 
 ```
 243DRC/
@@ -156,7 +154,7 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 └── package.json                 # Dépendances et scripts
 ```
 
-## 🤝 Contribuer
+##  Contribuer
 
 Les contributions sont les bienvenues ! Consultez notre [Guide de contribution](./CONTRIBUTING.md) pour plus de détails.
 
@@ -168,7 +166,7 @@ Les contributions sont les bienvenues ! Consultez notre [Guide de contribution](
 4. **Poussez** vers la branche (`git push origin feature/AmazingFeature`)
 5. **Ouvrez** une Pull Request
 
-## 📜 Scripts disponibles
+##  Scripts disponibles
 
 ```bash
 pnpm dev          # Démarre le serveur de développement
@@ -178,15 +176,15 @@ pnpm lint         # Vérifie le code avec ESLint
 pnpm clean        # Nettoie le cache (.next, node_modules/.cache)
 ```
 
-## 🔒 Sécurité
+##  Sécurité
 
 Si vous découvrez une vulnérabilité de sécurité, consultez notre [Politique de sécurité](./SECURITY.md).
 
-## 📄 Licence
+##  Licence
 
 Ce projet est sous licence MIT. Voir le fichier [LICENSE](./LICENSE) pour plus de détails.
 
-## 🌟 Remerciements
+##  Remerciements
 
 Merci à tous les contributeurs qui font vivre ce projet !
 
@@ -194,12 +192,13 @@ Merci à tous les contributeurs qui font vivre ce projet !
   <img src="https://contrib.rocks/image?repo=2MJ-DEV/243DRC" />
 </a>
 
-## 📞 Contact et Support
+##  Contact et Support
 
 - **Issues** : [GitHub Issues](https://github.com/2MJ-DEV/243DRC/issues)
 - **Discussions** : [GitHub Discussions](https://github.com/2MJ-DEV/243DRC/discussions)
 - **Twitter** : [@243DRC](https://twitter.com/243DRC)
 
 ---
+
 
 **Fait avec ❤️ par la communauté tech de la RDC 🇨🇩**
