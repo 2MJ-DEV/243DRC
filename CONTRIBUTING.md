@@ -4,7 +4,7 @@ Merci de votre intérêt pour contribuer à **243 DRC** ! 🎉
 
 Ce guide vous aidera à comprendre comment contribuer efficacement au projet, que vous soyez débutant ou développeur expérimenté.
 
-## 📋 Table des matières
+##  Table des matières
 
 - [Code de conduite](#code-de-conduite)
 - [Comment contribuer](#comment-contribuer)
@@ -16,30 +16,30 @@ Ce guide vous aidera à comprendre comment contribuer efficacement au projet, qu
 - [Signalement de bugs](#signalement-de-bugs)
 - [Proposition de fonctionnalités](#proposition-de-fonctionnalités)
 
-## 📜 Code de conduite
+##  Code de conduite
 
 En participant à ce projet, vous acceptez de respecter notre [Code de Conduite](./CODE_OF_CONDUCT.md). Nous nous engageons à maintenir un environnement accueillant et inclusif pour tous.
 
-## 🤝 Comment contribuer
+##  Comment contribuer
 
 Il existe plusieurs façons de contribuer :
 
-### 1. Signaler des bugs 🐛
+### 1. Signaler des bugs 
 - Vérifiez si le bug n'a pas déjà été signalé dans les [Issues](https://github.com/2MJ-DEV/243DRC/issues)
 - Utilisez le template de bug report
 - Fournissez un maximum de détails (navigateur, OS, étapes de reproduction)
 
-### 2. Proposer des améliorations 💡
+### 2. Proposer des améliorations 
 - Ouvrez une [Discussion](https://github.com/2MJ-DEV/243DRC/discussions)
 - Expliquez clairement votre idée et son utilité
 - Attendez les retours avant de commencer le développement
 
-### 3. Améliorer la documentation 📚
+### 3. Améliorer la documentation 
 - Corriger des fautes de frappe
 - Clarifier des sections confuses
 - Ajouter des exemples ou des tutoriels
 
-### 4. Développer des fonctionnalités ✨
+### 4. Développer des fonctionnalités 
 - Consultez les [Issues](https://github.com/2MJ-DEV/243DRC/issues) avec le label `good first issue` ou `help wanted`
 - Commentez l'issue pour indiquer que vous travaillez dessus
 - Suivez le workflow de développement ci-dessous
@@ -92,7 +92,7 @@ pnpm dev
 
 L'application devrait être accessible sur [http://localhost:3000](http://localhost:3000).
 
-## 🔄 Workflow de développement
+##  Workflow de développement
 
 ### 1. Créer une branche
 
@@ -153,7 +153,7 @@ git push origin votre-branche
 # Créez une Pull Request sur GitHub
 ```
 
-## 📝 Standards de code
+##  Standards de code
 
 ### TypeScript
 
@@ -282,7 +282,7 @@ chore(deps): update Next.js to v16
 - Limitez la première ligne à **72 caractères**
 - Ajoutez un body pour expliquer le "pourquoi" si nécessaire
 
-## 🔍 Process de Pull Request
+##  Process de Pull Request
 
 ### Avant de soumettre
 
@@ -369,7 +369,7 @@ Si applicable, ajoutez des captures d'écran.
 Toute autre information pertinente.
 ```
 
-## 💡 Proposition de fonctionnalités
+##  Proposition de fonctionnalités
 
 Utilisez ce template pour proposer une nouvelle fonctionnalité :
 
@@ -393,7 +393,7 @@ Quelles autres solutions avez-vous envisagées ?
 - [ ] Complexe (plusieurs semaines)
 ```
 
-## 📚 Ressources utiles
+##  Ressources utiles
 
 ### Documentation
 
@@ -408,7 +408,7 @@ Quelles autres solutions avez-vous envisagées ?
 - [GitHub Discussions](https://github.com/2MJ-DEV/243DRC/discussions)
 - [Issues](https://github.com/2MJ-DEV/243DRC/issues)
 
-## 🎓 Pour les débutants
+##  Pour les débutants
 
 Si c'est votre première contribution open source :
 
