@@ -163,3 +163,15 @@
 .animate-grid-shine {
   animation: shimmer 8s ease-in-out infinite;
 }
+
+.skewbox {
+   background-image: repeating-linear-gradient(
+    45deg,
+    rgba(19, 22, 231, 0.242) 0,
+    rgba(19, 22, 231, 0.258) 0.5px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 15px 15px;
+  background-color: rgba(71, 212, 255, 0);
+}

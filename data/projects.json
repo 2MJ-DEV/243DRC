@@ -13,6 +13,20 @@
     "language": "JavaScript"
   },
   {
+    "id": 2,
+    "name": "BuyMeACoffee-Africa",
+    "description": "Donnez vie à vos idées. Soutenez et collaborez avec les talents africains.",
+    "link": "https://github.com/2MJ-DEV/BuyMeACoffee-Africa",
+    "technologies": [
+      "JavaScript",
+      "Tailwind CSS",
+      "Node.js"
+    ],
+    "category": "App web",
+    "author": "Jules MUKADI",
+    "language": "JavaScript"
+  },
+  {
     "id": 3,
     "name": "Tailark",
     "description": "Tailark est une boîte à outils de conception et de composants destinée aux fondateurs et aux équipes souhaitant déployer plus rapidement des sites web marketing modernes. Elle propose une vaste collection de blocs responsifs et prêts pour la production, développés avec shadcn/ui, Tailwind CSS, Next.js et TypeScript.",
@@ -28,17 +42,58 @@
     "language": "TypeScript"
   },
   {
-    "id": 2,
-    "name": "BuyMeACoffee-Africa",
-    "description": "Donnez vie à vos idées. Soutenez et collaborez avec les talents africains.",
-    "link": "https://github.com/2MJ-DEV/BuyMeACoffee-Africa",
+    "id": 4,
+    "name": "Tailark",
+    "description": "Les classes réutilisables de composants Tailwind vous permettent de gagner du temps grâce à des classes pré-construites qui se mettent à jour automatiquement sur l'ensemble du site. Concentrez-vous sur la création, pas sur la correction.",
+    "link": "https://github.com/tailus-ui/html.tailus.io",
     "technologies": [
-      "JavaScript",
+      "TypeScript",
+      "Astro"
+    ],
+    "category": "Web Design",
+    "author": "Méschac Irung",
+    "language": "TypeScript"
+  },
+  {
+    "id": 5,
+    "name": "Astrolus",
+    "description": "Modèle de page d'accueil créé avec Astro et Tailwind CSS utilisant des blocs Tailus.",
+    "link": "https://github.com/Tailus-UI/astro-theme",
+    "technologies": [
+      "Astro"
+    ],
+    "category": "Template",
+    "author": "Méschac Irung",
+    "language": "Astro"
+  },
+  {
+    "id": 6,
+    "name": "BuilderMania",
+    "description": "Modèle de page d'accueil créé avec Astro et Tailwind CSS utilisant des blocs Tailus.",
+    "link": "https://github.com/BuilderMania/buildermania-web",
+    "technologies": [
+      "TypeScript",
+      "Next.js",
       "Tailwind CSS",
-      "Node.js"
+      "shadcn/ui"
     ],
     "category": "App web",
     "author": "Jules MUKADI",
-    "language": "JavaScript"
+    "language": "TypeScript"
+  },
+  {
+    "id": 7,
+    "name": "243DRC",
+    "description": "Découvrez, contribuez et partagez des projets open source locaux pour le développement technologique de la RDC.",
+    "link": "https://github.com/2MJ-DEV/243DRC",
+    "technologies": [
+      "TypeScript",
+      "Next.js",
+      "Tailwind CSS",
+      "shadcn/ui"
+    ],
+    "category": "App web",
+    "author": "Jules MUKADI",
+    "language": "TypeScript"
   }
 ]
