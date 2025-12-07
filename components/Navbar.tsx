@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import AuthButton from "./AuthButton";
 import { GithubIcon } from "lucide-react";
 import { useBanner } from "@/context/BannerContext";
+import Link from "next/link";
 
 const Navbar = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -49,16 +50,13 @@ const Navbar = () => {
           `}
         >
           <div className="flex items-center">
+            <Link href="/">
             <Image
               src="/flag-rdc.png"
               alt="Drapeau de la RDC"
               width={32}
               height={20}
-            />
-            {/* <h1 className="text-xl font-bold text-foreground">
-              <span className="text-[#EFDA5B]">243</span>
-              <span className="text-[#007FFF]">RDC</span>
-            </h1> */}
+            /></Link>
           </div>
 
           <div className="flex items-center font-sans space-x-3">
