@@ -2,12 +2,12 @@
 
 Ce projet utilise **Firebase** pour l'authentification et le stockage des données utilisateurs.
 
-## 📦 Services activés
+## Services activés
 
 - ✅ **Firebase Authentication** - Connexion avec Google
 - ✅ **Cloud Firestore** - Base de données pour stocker les utilisateurs et données
 
-## 🚀 Configuration
+##  Configuration
 
 ### 1. Variables d'environnement
 
@@ -56,7 +56,7 @@ service cloud.firestore {
 }
 ```
 
-## 📝 Utilisation
+##  Utilisation
 
 ### Composant AuthButton
 
@@ -100,7 +100,7 @@ const getData = async () => {
 };
 ```
 
-## 🔒 Structure Firestore
+##  Structure Firestore
 
 ### Collection `users`
 
@@ -114,7 +114,7 @@ const getData = async () => {
 }
 ```
 
-## 🎯 Ce qui a été supprimé
+##  Ce qui a été supprimé
 
 - ❌ Firebase Admin SDK (backend)
 - ❌ Firebase Functions
@@ -122,14 +122,14 @@ const getData = async () => {
 - ❌ Firebase Analytics
 - ❌ Routes API utilisant Firebase Admin
 
-## ⚡ Ce qui reste
+##  Ce qui reste
 
 - ✅ Authentification côté client
 - ✅ Firestore côté client
 - ✅ Google Sign-In
 - ✅ Gestion automatique des sessions
 
-## 📚 Documentation
+##  Documentation
 
 - [Firebase Authentication](https://firebase.google.com/docs/auth)
 - [Cloud Firestore](https://firebase.google.com/docs/firestore)
