@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { User } from "firebase/auth";
 import { auth, db } from "@/lib/firebaseClient";
 import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { deleteUser } from "firebase/auth";
+import { deleteUser, signOut } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -140,36 +140,73 @@ export default function ProfilPage() {
     try {
       setDeleting(true);
 
-      // Supprimer tous les projets de l'utilisateur
-      const projectsQuery = query(
-        collection(db, "projects"),
-        where("authorId", "==", user.uid)
+      const userId = user.uid;
+      const firestoreDb = db;
+
+      // 1. NE PAS supprimer les projets de l'utilisateur - ils restent pour la communauté
+      // Les projets restent dans la base de données même après suppression du compte
+
+      // 2. NE PAS supprimer les likes de l'utilisateur - ils restent pour maintenir les statistiques
+      // Les likes restent dans la base de données même après suppression du compte
+
+      // 3. Supprimer tous les favoris de l'utilisateur (données personnelles)
+      const favoritesQuery = query(
+        collection(firestoreDb, "favorites"),
+        where("userId", "==", userId)
       );
-      const projectsSnapshot = await getDocs(projectsQuery);
-      const deletePromises = projectsSnapshot.docs.map((doc) => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
+      const favoritesSnapshot = await getDocs(favoritesQuery);
+      const deleteFavoritesPromises = favoritesSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+      await Promise.all(deleteFavoritesPromises);
 
-      // Supprimer le document utilisateur dans Firestore
-      await deleteDoc(doc(db, "users", user.uid));
+      // 4. Supprimer toutes les notifications de l'utilisateur (données personnelles)
+      const notificationsQuery = query(
+        collection(firestoreDb, "notifications"),
+        where("userId", "==", userId)
+      );
+      const notificationsSnapshot = await getDocs(notificationsQuery);
+      const deleteNotificationsPromises = notificationsSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+      await Promise.all(deleteNotificationsPromises);
 
-      // Supprimer le compte Firebase Auth
+      // 5. Supprimer le document utilisateur dans Firestore
+      await deleteDoc(doc(firestoreDb, "users", userId));
+
+      // 6. Supprimer le compte Firebase Auth
       await deleteUser(user);
 
-      showSuccess("Compte supprimé", "Votre compte a été supprimé avec succès");
-      
-      // Rediriger vers la page d'accueil
-      router.push("/");
+      // 7. Déconnecter l'utilisateur
+      await signOut(auth);
+
+      // 8. Afficher le message de confirmation
+      showSuccess(
+        "Compte supprimé avec succès", 
+        "Votre compte a été définitivement supprimé. Vos projets et contributions restent disponibles pour la communauté. Vous allez être redirigé vers la page d'accueil."
+      );
+
+      // 9. Attendre un peu pour que l'utilisateur voie le message
+      setTimeout(() => {
+        // Rediriger vers la page d'accueil
+        router.push("/");
+        // Forcer le rechargement pour s'assurer que l'utilisateur est bien déconnecté
+        window.location.href = "/";
+      }, 2000);
     } catch (error: any) {
       console.error("Erreur lors de la suppression du compte:", error);
       
       if (error.code === 'auth/requires-recent-login') {
-        showError("Reconnexion requise", "Pour des raisons de sécurité, vous devez vous reconnecter avant de supprimer votre compte.");
+        showError(
+          "Reconnexion requise", 
+          "Pour des raisons de sécurité, vous devez vous reconnecter avant de supprimer votre compte."
+        );
+        setShowDeleteModal(false);
+        // Rediriger vers la page de connexion
+        router.push("/sign-in");
       } else {
-        showError("Erreur", "Une erreur est survenue lors de la suppression du compte");
+        showError(
+          "Erreur lors de la suppression", 
+          "Une erreur est survenue lors de la suppression du compte. Veuillez réessayer."
+        );
       }
-    } finally {
       setDeleting(false);
-      setShowDeleteModal(false);
     }
   };
 
@@ -439,13 +476,16 @@ export default function ProfilPage() {
             <div>
               <h3 className="font-semibold text-destructive mb-2">Supprimer mon compte</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                La suppression de votre compte est définitive. Toutes vos données seront supprimées :
+                La suppression de votre compte est définitive. Les éléments suivants seront supprimés :
               </p>
               <ul className="text-sm text-muted-foreground space-y-1 mb-4 list-disc list-inside">
                 <li>Votre profil utilisateur</li>
-                <li>Tous vos projets</li>
-                <li>Toutes vos contributions</li>
+                <li>Tous vos favoris</li>
+                <li>Toutes vos notifications</li>
               </ul>
+              <p className="text-sm text-muted-foreground mb-4 font-semibold">
+                ⚠️ Note : Vos projets et vos likes resteront disponibles pour la communauté même après la suppression de votre compte.
+              </p>
               <Button
                 variant="destructive"
                 onClick={() => setShowDeleteModal(true)}
@@ -469,9 +509,20 @@ export default function ProfilPage() {
           }
         }}
         onConfirm={handleDeleteAccount}
-        title="Supprimer mon compte"
-        message="Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront définitivement supprimées."
-        confirmText={deleting ? "Suppression..." : "Oui, supprimer mon compte"}
+        title="Supprimer mon compte définitivement"
+        message="⚠️ ATTENTION : Cette action est irréversible et supprimera définitivement :
+        
+• Votre compte utilisateur
+• Tous vos favoris
+• Toutes vos notifications
+• Toutes vos données personnelles
+
+⚠️ IMPORTANT : Les éléments suivants RESTERONT disponibles pour la communauté :
+• Vos projets (ils resteront visibles pour la communauté)
+• Vos likes sur les projets (les statistiques seront conservées)
+
+Après confirmation, vous serez automatiquement déconnecté et votre compte n'existera plus. Êtes-vous absolument certain de vouloir continuer ?"
+        confirmText={deleting ? "Suppression en cours..." : "Oui, supprimer définitivement"}
         cancelText="Annuler"
         variant="destructive"
       />
