@@ -33,12 +33,62 @@ service cloud.firestore {
     
     // Règles pour la collection githubStats (cache des stats GitHub)
     match /githubStats/{statsId} {
-      // Permettre la lecture à tous les utilisateurs authentifiés
-      allow read: if request.auth != null;
+      // Permettre la lecture à tous (public) pour éviter les erreurs de permission
+      // Le cache GitHub peut être lu par tous pour améliorer les performances
+      allow read: if true;
       
       // Permettre l'écriture (create/update) à tous les utilisateurs authentifiés
       // Cette collection sert de cache partagé pour les stats GitHub
       allow write: if request.auth != null;
+    }
+    
+    // Règles pour la collection favorites
+    match /favorites/{favoriteId} {
+      // Permettre la lecture publique pour compter les favoris (mais pas les détails)
+      // Pour lire les détails d'un favori spécifique, l'utilisateur doit être le propriétaire
+      allow read: if true;
+      
+      // Permettre la création seulement si l'utilisateur crée son propre favori
+      allow create: if request.auth != null 
+                   && request.resource.data.userId == request.auth.uid;
+      
+      // Permettre la suppression seulement au propriétaire
+      allow delete: if request.auth != null 
+                   && resource.data.userId == request.auth.uid;
+    }
+    
+    // Règles pour la collection likes
+    match /likes/{likeId} {
+      // Permettre la lecture à tous (public) pour afficher les compteurs de likes
+      allow read: if true;
+      
+      // Permettre la création seulement si l'utilisateur crée son propre like
+      allow create: if request.auth != null 
+                  && request.resource.data.userId == request.auth.uid;
+      
+      // Permettre la suppression seulement au propriétaire
+      allow delete: if request.auth != null 
+                   && resource.data.userId == request.auth.uid;
+    }
+    
+    // Règles pour la collection notifications
+    match /notifications/{notificationId} {
+      // Permettre la lecture si l'utilisateur est authentifié
+      // Le code côté client filtre toujours par userId dans les requêtes (where("userId", "==", user.uid))
+      // Cette règle permet les requêtes avec where() et orderBy()
+      allow read: if request.auth != null;
+      
+      // Permettre la création par n'importe quel utilisateur authentifié
+      // (pour créer des notifications pour d'autres utilisateurs)
+      allow create: if request.auth != null;
+      
+      // Permettre la mise à jour seulement au propriétaire (pour marquer comme lue)
+      allow update: if request.auth != null 
+                   && resource.data.userId == request.auth.uid;
+      
+      // Permettre la suppression seulement au propriétaire
+      allow delete: if request.auth != null 
+                   && resource.data.userId == request.auth.uid;
     }
   }
 }

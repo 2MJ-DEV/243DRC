@@ -16,6 +16,7 @@ import { Code, GitFork, Loader, Star, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { ProjectActions } from "@/components/ProjectActions";
 
 interface Project {
   id: string;
@@ -171,7 +172,7 @@ function ProjectCard({ project }: ProjectCardProps) {
         </CardContent>
 
         {/* FOOTER */}
-        <CardFooter className="border-t">
+        <CardFooter className="flex flex-col gap-3 border-t">
           <Button asChild variant="rdc" className="w-full">
             <a
               href={project.link || project.repoUrl || "#"}
@@ -182,6 +183,11 @@ function ProjectCard({ project }: ProjectCardProps) {
               Voir le projet
             </a>
           </Button>
+          {(project.id || project.name) && (
+            <div className="w-full flex justify-end">
+              <ProjectActions projectId={project.id || project.name} compact />
+            </div>
+          )}
         </CardFooter>
       </Card>
     </div>

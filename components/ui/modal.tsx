@@ -109,7 +109,7 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
   const handleConfirm = () => {
     onConfirm();
-    onClose();
+    // Ne pas fermer automatiquement si la fonction onConfirm gère elle-même la fermeture
   };
 
   return (

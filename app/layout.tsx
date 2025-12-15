@@ -44,7 +44,8 @@ export default function RootLayout({
               text: "En savoir plus",
               href: "/about"
             }}
-            dismissible={false}
+            dismissible={true}
+            storageKey="welcome-banner-dismissed"
           />
           
           {!isDashboard && <Navbar />}

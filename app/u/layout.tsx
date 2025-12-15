@@ -14,7 +14,10 @@ import {
   Plus,
   Search,
   LogOut,
+  Users,
+  Bookmark,
 } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import LenisScroll from "@/components/ui/LenisScroll";
 import ScrollLinked from "@/components/ui/ScrollLinked";
 
@@ -82,6 +85,8 @@ export default function DashboardLayout({
       href: "/u/dashboard/ajouter-projet",
     },
     { icon: Search, label: "Explorer", href: "/u/dashboard/explorer" },
+    { icon: Bookmark, label: "Favoris", href: "/u/dashboard/favoris" },
+    { icon: Users, label: "Rencontres", href: "/u/dashboard/rencontres" },
   ];
 
   if (loading) {
@@ -97,9 +102,9 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Navigation Header - Fixed */}
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 fixed top-0 left-0 right-0 z-50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/u/dashboard" className="text-xl font-bold">
@@ -107,15 +112,7 @@ export default function DashboardLayout({
             </Link>
 
             <div className="flex items-center gap-4">
-              {/* {user.photoURL && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.photoURL}
-                  alt={user.displayName || "User"}
-                  className="w-8 h-8 rounded-full"
-                />
-              )}
-              <span className="text-sm font-medium hidden sm:inline">{user.displayName}</span> */}
+              <NotificationBell />
               <Button onClick={handleSignOut} variant="destructive" size="sm">
                 <span>Déconnexion</span>
                 <LogOut className="w-4 h-4" />
@@ -125,9 +122,9 @@ export default function DashboardLayout({
         </div>
       </nav>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 border-r min-h-[calc(100vh-4rem)] bg-background/50 hidden md:block sticky top-16 self-start">
+      <div className="flex flex-1 pt-16">
+        {/* Sidebar - Fixed */}
+        <aside className="w-64 border-r bg-background/50 hidden md:block fixed top-16 left-0 bottom-0 overflow-y-auto">
           <div className="p-4 space-y-2">
             {/* User Profile Section */}
             <div className="mb-6 rounded-lg bg-muted/50">
@@ -185,8 +182,8 @@ export default function DashboardLayout({
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6 sm:p-8">
+        {/* Main Content - Scrollable */}
+        <main className="flex-1 p-6 sm:p-8 md:ml-64 overflow-y-auto">
           <LenisScroll>{children}</LenisScroll>
         </main>
       </div>

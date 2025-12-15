@@ -55,6 +55,62 @@ Sans ces index, les requêtes Firestore échoueront avec l'erreur `failed-precon
 
 ---
 
+### 3. Index Composite pour les Notifications
+
+**Collection:** `notifications`
+
+**Champs à indexer:**
+- `userId` - **Ascending** (Croissant)
+- `createdAt` - **Descending** (Décroissant)
+
+**Query Scope:** Collection
+
+**Utilisé dans:**
+- `lib/hooks/useNotifications.ts` (écoute en temps réel des notifications)
+
+**Comment créer:**
+1. Allez dans [Firebase Console](https://console.firebase.google.com/)
+2. Sélectionnez votre projet
+3. Allez dans **Firestore Database** > **Indexes**
+4. Cliquez sur **Créer un index**
+5. Collection ID: `notifications`
+6. Ajoutez les champs:
+   - `userId` (Ascending)
+   - `createdAt` (Descending)
+7. Cliquez sur **Créer**
+
+**Temps de création:** 2-5 minutes
+
+---
+
+### 4. Index Composite pour les Notifications Non Lues
+
+**Collection:** `notifications`
+
+**Champs à indexer:**
+- `userId` - **Ascending** (Croissant)
+- `read` - **Ascending** (Croissant)
+
+**Query Scope:** Collection
+
+**Utilisé dans:**
+- `lib/utils/notifications.ts` (comptage des notifications non lues)
+
+**Comment créer:**
+1. Allez dans [Firebase Console](https://console.firebase.google.com/)
+2. Sélectionnez votre projet
+3. Allez dans **Firestore Database** > **Indexes**
+4. Cliquez sur **Créer un index**
+5. Collection ID: `notifications`
+6. Ajoutez les champs:
+   - `userId` (Ascending)
+   - `read` (Ascending)
+7. Cliquez sur **Créer**
+
+**Temps de création:** 2-5 minutes
+
+---
+
 ## 🚀 Création Automatique via Firebase CLI
 
 Si vous utilisez Firebase CLI, vous pouvez créer ces index automatiquement en créant un fichier `firestore.indexes.json` :

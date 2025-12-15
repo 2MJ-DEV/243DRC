@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, Megaphone, Info, AlertCircle, Bell, CircleCheckBig } from "lucide-react";
 import Link from "next/link";
 import { useBanner } from "@/context/BannerContext";
@@ -27,23 +27,7 @@ export default function AnnouncementBanner({
   const [isAnimating, setIsAnimating] = useState(false);
   const { setIsBannerVisible } = useBanner();
 
-  useEffect(() => {
-    // Vérifier si l'annonce a été fermée précédemment
-    const isDismissed = localStorage.getItem(storageKey);
-    if (!isDismissed) {
-      setIsVisible(true);
-      setTimeout(() => setIsAnimating(true), 10);
-      
-      // Disparaître automatiquement après 1 minute (60000ms)
-      const autoHideTimer = setTimeout(() => {
-        handleDismiss();
-      }, 8000);
-      
-      return () => clearTimeout(autoHideTimer);
-    }
-  }, [storageKey]);
-
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     setIsAnimating(false);
     setIsBannerVisible(false);
     setTimeout(() => {
@@ -52,7 +36,27 @@ export default function AnnouncementBanner({
         localStorage.setItem(storageKey, "true");
       }
     }, 300);
-  };
+  }, [dismissible, storageKey, setIsBannerVisible]);
+
+  useEffect(() => {
+    // Vérifier si l'annonce a été fermée précédemment
+    const isDismissed = localStorage.getItem(storageKey);
+    if (!isDismissed) {
+      setIsVisible(true);
+      setIsBannerVisible(true);
+      setTimeout(() => setIsAnimating(true), 10);
+      
+      // Disparaître automatiquement après 8 secondes
+      const autoHideTimer = setTimeout(() => {
+        handleDismiss();
+      }, 8000);
+      
+      return () => clearTimeout(autoHideTimer);
+    } else {
+      // Si la bannière a déjà été fermée, mettre à jour le contexte
+      setIsBannerVisible(false);
+    }
+  }, [storageKey, handleDismiss, setIsBannerVisible]);
 
   if (!isVisible) return null;
 

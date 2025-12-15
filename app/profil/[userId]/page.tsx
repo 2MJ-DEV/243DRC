@@ -29,6 +29,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
+import GitHubActivity from "@/components/GitHubActivity";
 
 interface UserProfile {
   uid: string;
@@ -89,6 +90,9 @@ export default function ProfilPublicPage() {
         }
 
         const userData = userDoc.data();
+        console.log("Profil public - Données utilisateur:", userData);
+        console.log("Profil public - Lien GitHub:", userData.github);
+        
         setUserProfile({
           uid: userId,
           displayName: userData.displayName || userData.email?.split("@")[0] || "Utilisateur",
@@ -187,7 +191,7 @@ export default function ProfilPublicPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pt-24 pb-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Bouton retour */}
         <div className="mb-6">
@@ -201,116 +205,166 @@ export default function ProfilPublicPage() {
           </Button>
         </div>
 
-        {/* En-tête du profil */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Photo de profil */}
-              <div className="flex-shrink-0">
-                {userProfile.photoURL && !imageError ? (
-                  <img
-                    src={userProfile.photoURL}
-                    alt={userProfile.displayName}
-                    className="w-32 h-32 rounded-full border-4 border-primary/20 object-cover"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-primary/20 bg-primary/10 flex items-center justify-center text-primary font-semibold text-4xl">
-                    {userProfile.displayName[0]?.toUpperCase() || "U"}
-                  </div>
-                )}
+        {/* En-tête du profil - Design amélioré */}
+        <Card className="mb-8 overflow-hidden border-2 shadow-lg">
+          {/* Bannière de fond */}
+          <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 relative">
+            <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+          </div>
+          
+          <CardContent className="pt-0 pb-6">
+            <div className="flex flex-col md:flex-row gap-6 -mt-16 md:-mt-20">
+              {/* Photo de profil - Plus grande et avec ombre */}
+              <div className="flex-shrink-0 relative">
+                <div className="relative">
+                  {userProfile.photoURL && !imageError ? (
+                    <img
+                      src={userProfile.photoURL}
+                      alt={userProfile.displayName}
+                      className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-background shadow-xl object-cover"
+                      onError={() => setImageError(true)}
+                    />
+                  ) : (
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-background bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center text-primary font-semibold text-5xl shadow-xl">
+                      {userProfile.displayName[0]?.toUpperCase() || "U"}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Informations principales */}
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">{userProfile.displayName}</h1>
-                {userProfile.jobTitle && (
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <Briefcase className="w-4 h-4" />
-                    <span>{userProfile.jobTitle}</span>
-                  </div>
-                )}
-                {userProfile.location && (
-                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
-                    <MapPin className="w-4 h-4" />
-                    <span>{userProfile.location}</span>
-                  </div>
-                )}
-                {userProfile.university && (
-                  <div className="flex items-center gap-2 text-muted-foreground mb-4">
-                    <GraduationCap className="w-4 h-4" />
-                    <span>{userProfile.university}</span>
-                  </div>
-                )}
-                {userProfile.bio && (
-                  <p className="text-muted-foreground mb-4">{userProfile.bio}</p>
-                )}
+              <div className="flex-1 pt-4 md:pt-8">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                  <div className="flex-1">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                      {userProfile.displayName}
+                    </h1>
+                    
+                    <div className="space-y-2 mb-4">
+                      {userProfile.jobTitle && (
+                        <div className="flex items-center gap-2 text-foreground/80">
+                          <Briefcase className="w-4 h-4 text-primary" />
+                          <span className="font-medium">{userProfile.jobTitle}</span>
+                        </div>
+                      )}
+                      {userProfile.location && (
+                        <div className="flex items-center gap-2 text-foreground/70">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span>{userProfile.location}</span>
+                        </div>
+                      )}
+                      {userProfile.university && (
+                        <div className="flex items-center gap-2 text-foreground/70">
+                          <GraduationCap className="w-4 h-4 text-primary" />
+                          <span>{userProfile.university}</span>
+                        </div>
+                      )}
+                    </div>
 
-                {/* Liens sociaux */}
-                <div className="flex gap-3">
-                  {userProfile.github && (
-                    <a
-                      href={userProfile.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-full bg-muted hover:bg-primary/10 transition-colors"
-                    >
-                      <Github className="w-5 h-5" />
-                    </a>
-                  )}
-                  {userProfile.linkedin && (
-                    <a
-                      href={userProfile.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-full bg-muted hover:bg-primary/10 transition-colors"
-                    >
-                      <Linkedin className="w-5 h-5" />
-                    </a>
-                  )}
-                  {userProfile.twitter && (
-                    <a
-                      href={userProfile.twitter}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-full bg-muted hover:bg-primary/10 transition-colors"
-                    >
-                      <Twitter className="w-5 h-5" />
-                    </a>
-                  )}
-                </div>
-              </div>
+                    {userProfile.bio && (
+                      <p className="text-foreground/80 leading-relaxed mb-4 max-w-2xl">
+                        {userProfile.bio}
+                      </p>
+                    )}
 
-              {/* Statistiques */}
-              <div className="flex flex-col gap-4">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">{projects.length}</div>
-                  <div className="text-sm text-muted-foreground">Projets</div>
+                    {/* Liens sociaux - Design amélioré */}
+                    {(userProfile.github || userProfile.linkedin || userProfile.twitter) && (
+                      <div className="flex gap-3 mt-4">
+                        {userProfile.github && (
+                          <a
+                            href={userProfile.github}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-3 rounded-lg bg-muted hover:bg-primary/10 transition-all hover:scale-110 border border-border"
+                            title="GitHub"
+                          >
+                            <Github className="w-5 h-5" />
+                          </a>
+                        )}
+                        {userProfile.linkedin && (
+                          <a
+                            href={userProfile.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-3 rounded-lg bg-muted hover:bg-primary/10 transition-all hover:scale-110 border border-border"
+                            title="LinkedIn"
+                          >
+                            <Linkedin className="w-5 h-5" />
+                          </a>
+                        )}
+                        {userProfile.twitter && (
+                          <a
+                            href={userProfile.twitter}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-3 rounded-lg bg-muted hover:bg-primary/10 transition-all hover:scale-110 border border-border"
+                            title="Twitter"
+                          >
+                            <Twitter className="w-5 h-5" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Statistiques - Design amélioré */}
+                  <div className="flex md:flex-col gap-6 md:gap-4">
+                    <Card className="border-2 shadow-md">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-4xl font-bold text-primary mb-1">{projects.length}</div>
+                        <div className="text-sm text-muted-foreground font-medium">Projets</div>
+                      </CardContent>
+                    </Card>
+                    {auth?.currentUser?.uid === userId && (
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push("/u/dashboard/profil")}
+                        className="md:w-full"
+                      >
+                        Modifier mon profil
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                {auth?.currentUser?.uid === userId && (
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/u/dashboard/profil")}
-                  >
-                    Modifier mon profil
-                  </Button>
-                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Activité GitHub */}
+        {userProfile.github ? (
+          <div className="mb-8">
+            <GitHubActivity githubUrl={userProfile.github} />
+          </div>
+        ) : (
+          <div className="mb-8">
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Aucun lien GitHub renseigné. Ajoutez votre lien GitHub dans votre profil pour afficher votre activité.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Projets */}
         <div>
-          <h2 className="text-2xl font-bold mb-6">
-            Projets ({projects.length})
-          </h2>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent"></div>
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Projets <span className="text-muted-foreground">({projects.length})</span>
+            </h2>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent"></div>
+          </div>
 
           {projects.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Code className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="font-semibold text-lg mb-2">Aucun projet</h3>
+            <Card className="border-2">
+              <CardContent className="py-16 text-center">
+                <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                  <Code className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-xl mb-2">Aucun projet</h3>
                 <p className="text-muted-foreground">
                   Cet utilisateur n'a pas encore ajouté de projets.
                 </p>
@@ -325,7 +379,7 @@ export default function ProfilPublicPage() {
                   : null;
 
                 return (
-                  <Card key={project.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={project.id} className="hover:shadow-xl transition-all duration-300 border-2 overflow-hidden group">
                     {imageUrl && (
                       <div className="p-2">
                         <div className="relative w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden">
@@ -333,52 +387,54 @@ export default function ProfilPublicPage() {
                             src={imageUrl}
                             alt={project.title}
                             fill
-                            className="object-cover"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         </div>
                       </div>
                     )}
-                    <CardHeader>
-                      <CardTitle className="text-xl line-clamp-2">{project.title}</CardTitle>
-                      <CardDescription className="line-clamp-2">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-xl line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                        {project.title}
+                      </CardTitle>
+                      <CardDescription className="line-clamp-2 text-sm">
                         {project.description}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Star className="w-4 h-4 text-yellow-500" />
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 text-sm font-medium">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                           <span>{project.stars.toLocaleString()}</span>
                         </div>
-                        <div className="flex items-center gap-1 text-sm">
+                        <div className="flex items-center gap-1.5 text-sm font-medium">
                           <GitFork className="w-4 h-4 text-blue-500" />
                           <span>{project.forks.toLocaleString()}</span>
                         </div>
                       </div>
 
                       {project.technologies && project.technologies.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {project.technologies.slice(0, 3).map((tech, index) => (
+                        <div className="flex flex-wrap gap-2">
+                          {project.technologies.slice(0, 4).map((tech, index) => (
                             <span
                               key={index}
-                              className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-md"
+                              className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-medium rounded-md border border-primary/20"
                             >
                               {tech}
                             </span>
                           ))}
-                          {project.technologies.length > 3 && (
-                            <span className="px-2 py-1 bg-muted text-muted-foreground text-xs rounded-md">
-                              +{project.technologies.length - 3}
+                          {project.technologies.length > 4 && (
+                            <span className="px-2.5 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-md border border-border">
+                              +{project.technologies.length - 4}
                             </span>
                           )}
                         </div>
                       )}
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="pt-0">
                       <Button
                         variant="rdc"
-                        className="w-full"
+                        className="w-full group-hover:shadow-md transition-all"
                         onClick={() => window.open(project.repoUrl, "_blank")}
                       >
                         Voir le projet

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { User } from "firebase/auth";
 import { auth, db } from "@/lib/firebaseClient";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { deleteUser } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,13 +17,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ToastContainer";
-import { Edit, MapPin, Briefcase, GraduationCap, Github, Linkedin, Twitter, ExternalLink } from "lucide-react";
+import { Edit, MapPin, Briefcase, GraduationCap, Github, Linkedin, Twitter, ExternalLink, Trash2, AlertTriangle } from "lucide-react";
+import { ConfirmModal } from "@/components/ui/modal";
 
 export default function ProfilPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [userProfile, setUserProfile] = useState({
     bio: "",
     location: "",
@@ -127,6 +131,45 @@ export default function ProfilPage() {
       showError("Erreur", "Une erreur est survenue lors de la sauvegarde du profil");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user || !auth || !db) return;
+
+    try {
+      setDeleting(true);
+
+      // Supprimer tous les projets de l'utilisateur
+      const projectsQuery = query(
+        collection(db, "projects"),
+        where("authorId", "==", user.uid)
+      );
+      const projectsSnapshot = await getDocs(projectsQuery);
+      const deletePromises = projectsSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+
+      // Supprimer le document utilisateur dans Firestore
+      await deleteDoc(doc(db, "users", user.uid));
+
+      // Supprimer le compte Firebase Auth
+      await deleteUser(user);
+
+      showSuccess("Compte supprimé", "Votre compte a été supprimé avec succès");
+      
+      // Rediriger vers la page d'accueil
+      router.push("/");
+    } catch (error: any) {
+      console.error("Erreur lors de la suppression du compte:", error);
+      
+      if (error.code === 'auth/requires-recent-login') {
+        showError("Reconnexion requise", "Pour des raisons de sécurité, vous devez vous reconnecter avant de supprimer votre compte.");
+      } else {
+        showError("Erreur", "Une erreur est survenue lors de la suppression du compte");
+      }
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -379,6 +422,59 @@ export default function ProfilPage() {
           </Button>
         </div>
       )}
+
+      {/* Zone de danger - Suppression du compte */}
+      <Card className="border-2 border-destructive/50 bg-destructive/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="w-5 h-5" />
+            Zone de danger
+          </CardTitle>
+          <CardDescription className="text-destructive/80">
+            Actions irréversibles. Soyez certain de ce que vous faites.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-destructive mb-2">Supprimer mon compte</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                La suppression de votre compte est définitive. Toutes vos données seront supprimées :
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-1 mb-4 list-disc list-inside">
+                <li>Votre profil utilisateur</li>
+                <li>Tous vos projets</li>
+                <li>Toutes vos contributions</li>
+              </ul>
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteModal(true)}
+                className="w-full sm:w-auto"
+                disabled={deleting}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer mon compte
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modale de confirmation de suppression */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          if (!deleting) {
+            setShowDeleteModal(false);
+          }
+        }}
+        onConfirm={handleDeleteAccount}
+        title="Supprimer mon compte"
+        message="Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible et toutes vos données seront définitivement supprimées."
+        confirmText={deleting ? "Suppression..." : "Oui, supprimer mon compte"}
+        cancelText="Annuler"
+        variant="destructive"
+      />
     </div>
   );
 }

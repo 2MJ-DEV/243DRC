@@ -37,7 +37,7 @@ const Navbar = () => {
   return (
     <>
       <div className={`fixed left-0 right-0 z-40 px-4 transition-all duration-300 ${
-        isBannerVisible ? 'md:top-[52px] top-[2 4px]' : 'md:top-3 top-0'
+        isBannerVisible ? 'md:top-[52px] top-[24px]' : 'md:top-3 top-0'
       }`}>
         <div 
           className={`
