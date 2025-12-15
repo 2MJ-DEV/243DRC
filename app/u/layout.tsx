@@ -132,17 +132,28 @@ export default function DashboardLayout({
             {/* User Profile Section */}
             <div className="mb-6 rounded-lg bg-muted/50">
               <div className="flex items-center gap-3 mb-3">
-                {user.photoURL && (
-                  // eslint-disable-next-line @next/next/no-img-element
+                {user.photoURL ? (
                   <img
                     src={user.photoURL}
                     alt={user.displayName || "User"}
                     className="w-12 h-12 rounded-full border-2 border-primary/20"
+                    onError={(e) => {
+                      // Fallback si l'image ne charge pas
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
                   />
-                )}
+                ) : null}
+                <div 
+                  className={`w-12 h-12 rounded-full border-2 border-primary/20 bg-primary/10 flex items-center justify-center text-primary font-semibold ${user.photoURL ? 'hidden' : ''}`}
+                >
+                  {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
+                </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate">
-                    {user.displayName}
+                    {user.displayName || "Utilisateur"}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {user.email}

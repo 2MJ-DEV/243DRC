@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import projectsData from "@/data/projects.json";
+import { auth, db } from "@/lib/firebaseClient";
+import { collection, getDocs, orderBy, query, limit, startAfter, DocumentSnapshot } from "firebase/firestore";
 import {
   Card,
   CardContent,
@@ -13,13 +15,18 @@ import {
 import { Code, GitFork, Loader, Star, Users, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 interface Project {
   id: string;
   name: string;
+  title?: string; // Pour les projets Firestore
   description: string;
   link: string;
+  repoUrl?: string; // Pour les projets Firestore
   author: string;
+  authorName?: string; // Pour les projets Firestore
+  authorId?: string; // ID de l'auteur pour les projets Firestore
   language: string;
   technologies: string[];
   githubStats?: {
@@ -27,6 +34,8 @@ interface Project {
     forks: number;
     lastUpdated: string;
   };
+  stars?: number; // Pour les projets Firestore
+  forks?: number; // Pour les projets Firestore
   isLoadingStats?: boolean;
 }
 
@@ -62,7 +71,8 @@ function ProjectCard({ project }: ProjectCardProps) {
     return null;
   };
 
-  const githubInfo = getGithubInfo(project.link);
+  const repoLink = project.link || project.repoUrl || "";
+  const githubInfo = getGithubInfo(repoLink);
   const imageUrl = githubInfo
     ? `https://opengraph.githubassets.com/1/${githubInfo.owner}/${githubInfo.repo}`
     : null;
@@ -139,13 +149,23 @@ function ProjectCard({ project }: ProjectCardProps) {
 
           {/* INFOS */}
           <div className="flex justify-between text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-auto">
-            <span className="flex items-center gap-1">
+            <Link 
+              href={`/profil/${project.authorId || 'unknown'}`}
+              className="flex items-center gap-1 hover:text-primary transition-colors cursor-pointer"
+              onClick={(e) => {
+                if (!project.authorId) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <Users size={15} className="w-3 h-3 sm:w-4 sm:h-4" />
-              {project.author}
-            </span>
+              <span className="hover:underline">
+                {project.author || project.authorName || "Auteur inconnu"}
+              </span>
+            </Link>
             <span className="flex items-center gap-1">
               <Code size={15} className="w-3 h-3 sm:w-4 sm:h-4" />
-              {project.language}
+              {project.language || "Autre"}
             </span>
           </div>
         </CardContent>
@@ -154,7 +174,7 @@ function ProjectCard({ project }: ProjectCardProps) {
         <CardFooter className="border-t">
           <Button asChild variant="rdc" className="w-full">
             <a
-              href={project.link}
+              href={project.link || project.repoUrl || "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex justify-center items-center gap-2"
@@ -175,53 +195,133 @@ export default function ExplorerLesProjets() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
 
-  // Récupérer les projets depuis le fichier JSON
+  // Fonction pour extraire owner et repo depuis le lien GitHub
+  const getGithubInfo = (link: string) => {
+    if (!link || typeof link !== 'string') return null;
+    const match = link.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (match) {
+      return { owner: match[1], repo: match[2].replace(/\.git$/, "") };
+    }
+    return null;
+  };
+
+  // Récupérer les projets depuis Firestore ET le fichier JSON
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Convertir les données JSON en format Project avec id en string
-        const projectsList: Project[] = projectsData.map((project) => ({
+        const allProjects: Project[] = [];
+
+        // 1. Charger les projets depuis le fichier JSON (projets statiques)
+        const jsonProjects: Project[] = projectsData.map((project) => ({
           ...project,
           id: project.id.toString(),
           isLoadingStats: true,
         }));
+        allProjects.push(...jsonProjects);
 
-        setProjects(projectsList);
-        setFilteredProjects(projectsList);
+        // 2. Charger TOUS les projets depuis Firestore (projets ajoutés par les utilisateurs)
+        if (db) {
+          try {
+            // Charger tous les projets avec pagination
+            let lastDoc: DocumentSnapshot | null = null;
+            let hasMore = true;
+            const allFirestoreProjects: Project[] = [];
 
-        // Récupérer les stats GitHub pour chaque projet
-        const projectsWithStats = await Promise.all(
-          projectsList.map(async (project) => {
-            const githubInfo = getGithubInfo(project.link);
-            if (!githubInfo) {
-              return { ...project, isLoadingStats: false };
-            }
-
-            try {
-              const response = await fetch(
-                `https://api.github.com/repos/${githubInfo.owner}/${githubInfo.repo}`
+            while (hasMore) {
+              let q = query(
+                collection(db, "projects"),
+                orderBy("createdAt", "desc"),
+                limit(100) // Charger par batch de 100
               );
 
-              if (!response.ok) {
-                return { ...project, isLoadingStats: false };
+              if (lastDoc) {
+                q = query(q, startAfter(lastDoc));
               }
 
-              const data = await response.json();
-              return {
-                ...project,
-                githubStats: {
-                  stars: data.stargazers_count,
-                  forks: data.forks_count,
-                  lastUpdated: data.updated_at,
-                },
-                isLoadingStats: false,
-              };
-            } catch (error) {
-              console.error(`Error fetching stats for ${project.name}:`, error);
-              return { ...project, isLoadingStats: false };
+              const snapshot = await getDocs(q);
+              
+              if (snapshot.empty) {
+                hasMore = false;
+                break;
+              }
+
+              const firestoreProjects: Project[] = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                return {
+                  id: doc.id,
+                  name: data.title || "",
+                  title: data.title,
+                  description: data.description || "",
+                  link: data.repoUrl || "",
+                  repoUrl: data.repoUrl,
+                  author: data.authorName || "Auteur inconnu",
+                  authorName: data.authorName,
+                  authorId: data.authorId || "", // Ajouter l'ID de l'auteur
+                  language: data.technologies?.[0] || "Autre", // Utiliser la première technologie comme langage
+                  technologies: data.technologies || [],
+                  stars: data.stars || 0,
+                  forks: data.forks || 0,
+                  isLoadingStats: true,
+                };
+              });
+
+              allFirestoreProjects.push(...firestoreProjects);
+              
+              // Si on a moins de 100 résultats, c'est la dernière page
+              if (snapshot.docs.length < 100) {
+                hasMore = false;
+              } else {
+                lastDoc = snapshot.docs[snapshot.docs.length - 1];
+              }
             }
-          })
-        );
+            
+            allProjects.push(...allFirestoreProjects);
+            console.log(`Chargé ${allFirestoreProjects.length} projets depuis Firestore`);
+          } catch (firestoreError: any) {
+            console.error("Erreur lors du chargement des projets Firestore:", firestoreError);
+            
+            // Si l'erreur est due à l'authentification, on continue avec les projets JSON
+            if (firestoreError.code === 'permission-denied') {
+              console.warn("Permission refusée pour lire Firestore. Affichage des projets JSON uniquement.");
+            }
+            // Continuer même si Firestore échoue, on aura au moins les projets JSON
+          }
+        }
+
+        setProjects(allProjects);
+        setFilteredProjects(allProjects);
+
+        // 3. Récupérer les stats GitHub pour chaque projet avec cache et batch
+        const { getCachedGitHubStatsBatch } = await import("@/lib/utils/githubCache");
+        const repoUrls = allProjects
+          .map(p => p.link || p.repoUrl || "")
+          .filter(link => link && getGithubInfo(link) !== null);
+        
+        const statsMap = await getCachedGitHubStatsBatch(repoUrls, 5);
+        
+        const projectsWithStats = allProjects.map((project) => {
+          const repoLink = project.link || project.repoUrl || "";
+          const stats = statsMap.get(repoLink);
+          
+          // Utiliser les stats Firestore si disponibles, sinon utiliser les stats GitHub
+          const finalStars = project.stars !== undefined ? project.stars : (stats?.stars || 0);
+          const finalForks = project.forks !== undefined ? project.forks : (stats?.forks || 0);
+          
+          if (stats || project.stars !== undefined) {
+            return {
+              ...project,
+              githubStats: {
+                stars: finalStars,
+                forks: finalForks,
+                lastUpdated: new Date().toISOString(),
+              },
+              stars: finalStars,
+              forks: finalForks,
+              isLoadingStats: false,
+            };
+          }
+          return { ...project, isLoadingStats: false };
+        });
 
         setProjects(projectsWithStats);
         setFilteredProjects(projectsWithStats);
@@ -235,16 +335,6 @@ export default function ExplorerLesProjets() {
     fetchProjects();
   }, []);
 
-  // Fonction pour extraire owner et repo depuis le lien GitHub
-  const getGithubInfo = (link: string) => {
-    if (!link || typeof link !== 'string') return null;
-    const match = link.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-    if (match) {
-      return { owner: match[1], repo: match[2].replace(/\.git$/, "") };
-    }
-    return null;
-  };
-
   // Filtrer les projets par recherche et langage
   useEffect(() => {
     let filtered = projects;
@@ -253,9 +343,9 @@ export default function ExplorerLesProjets() {
     if (searchTerm) {
       filtered = filtered.filter(
         (project) =>
-          project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (project.name || project.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
           project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          project.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (project.author || project.authorName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
           project.technologies.some((tech) =>
             tech.toLowerCase().includes(searchTerm.toLowerCase())
           )

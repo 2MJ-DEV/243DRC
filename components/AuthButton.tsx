@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { 
   signInWithPopup, 
@@ -12,28 +12,71 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebaseClient";
 import { Button } from "./ui/button";
 import { useToast } from "@/components/ToastContainer";
+import { LogOut, User as UserIcon, Settings } from "lucide-react";
 
 export default function AuthButton() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const { showSuccess } = useToast();
 
   useEffect(() => {
-    if (!auth) {
+    // Attendre que Firebase soit initialisé côté client
+    if (typeof window === "undefined") {
       setLoading(false);
-      setError("Firebase n'est pas configuré correctement");
       return;
     }
 
+    // Si auth n'est pas disponible, afficher le bouton de connexion
+    if (!auth) {
+      console.warn("Firebase Auth n'est pas initialisé");
+      setLoading(false);
+      setUser(null);
+      return;
+    }
+
+    // Vérifier l'état actuel immédiatement
+    if (auth.currentUser) {
+      setUser(auth.currentUser);
+      setLoading(false);
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log("Auth state changed:", currentUser ? `User logged in: ${currentUser.email}` : "User logged out");
       setUser(currentUser);
       setLoading(false);
+      setError(null);
+      // Réinitialiser l'erreur d'image quand l'utilisateur change
+      setImageError(false);
+      // Fermer le menu si l'utilisateur se déconnecte
+      if (!currentUser) {
+        setShowMenu(false);
+      }
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Fermer le menu quand on clique en dehors
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
 
   const handleGoogleSignIn = async () => {
     if (!auth || !googleProvider || !db) {
@@ -70,9 +113,16 @@ export default function AuthButton() {
       // Redirection vers le dashboard après connexion réussie
       router.push("/u/dashboard");
     } catch (error: any) {
+      // Ignorer silencieusement l'erreur si l'utilisateur ferme la popup
+      if (error.code === 'auth/popup-closed-by-user') {
+        // L'utilisateur a simplement fermé la popup, ce n'est pas une erreur
+        setLoading(false);
+        return;
+      }
+      
+      // Pour les autres erreurs, les afficher
       console.error("Erreur lors de la connexion:", error);
       setError(error.message || "Erreur lors de la connexion");
-    } finally {
       setLoading(false);
     }
   };
@@ -90,42 +140,139 @@ export default function AuthButton() {
     }
   };
 
-  if (loading) {
+  // Afficher un loader pendant le chargement initial seulement
+  if (loading && !user) {
     return (
-      <Button disabled variant="outline">
-        Chargement...
+      <Button disabled variant="outline" className="min-w-[120px]">
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <span className="ml-2">Chargement...</span>
       </Button>
     );
   }
 
-  if (error) {
+  // Afficher le bouton de connexion si pas d'utilisateur
+  if (!user) {
     return (
-      <Button disabled variant="outline" className="text-red-500">
-        Erreur de config
-      </Button>
-    );
-  }
-
-  if (user) {
-    return (
-      <button
-        onClick={() => router.push("/u/dashboard")}
-        className="hover:opacity-80 transition-opacity cursor-pointer"
-      >
-        {user.photoURL && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={user.photoURL}
-            alt={user.displayName || "User"}
-            className="w-10 h-10 rounded-full border-2 border-primary/20 hover:border-primary/50 transition-colors"
+      <Button onClick={handleGoogleSignIn} variant="rdc" disabled={loading}>
+        <svg className="w-5 h-5 " viewBox="0 0 24 24">
+          <path
+            fill="currentColor"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
           />
-        )}
-      </button>
+          <path
+            fill="currentColor"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+          />
+          <path
+            fill="currentColor"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+          />
+          <path
+            fill="currentColor"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+          />
+        </svg>
+        Se connecter
+      </Button>
     );
   }
 
+  // Afficher le profil utilisateur si connecté
+  if (user) {
+    console.log("Rendering user profile:", {
+      hasPhotoURL: !!user.photoURL,
+      photoURL: user.photoURL,
+      imageError,
+      displayName: user.displayName,
+      email: user.email
+    });
+
+    return (
+      <div className="relative" ref={menuRef}>
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className="hover:opacity-80 transition-opacity cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 rounded-full flex items-center justify-center w-10 h-10"
+          aria-label="Menu utilisateur"
+        >
+          {user.photoURL && !imageError ? (
+            <img
+              src={user.photoURL}
+              alt={user.displayName || "User"}
+              className="w-10 h-10 rounded-full border-2 border-primary/20 hover:border-primary/50 transition-colors object-cover flex-shrink-0"
+              onError={(e) => {
+                console.error("Erreur de chargement de l'image de profil:", user.photoURL);
+                setImageError(true);
+              }}
+              onLoad={() => {
+                console.log("Image de profil chargée avec succès:", user.photoURL);
+                setImageError(false);
+              }}
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full border-2 border-primary/20 bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm flex-shrink-0">
+              {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
+            </div>
+          )}
+        </button>
+
+        {/* Menu déroulant */}
+        {showMenu && (
+          <div className="absolute right-0 mt-2 w-56 bg-background border border-border rounded-lg shadow-xl z-[100] overflow-hidden">
+            <div className="p-4 border-b border-border">
+              <p className="font-semibold text-sm text-foreground truncate">
+                {user.displayName || "Utilisateur"}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {user.email}
+              </p>
+            </div>
+            
+            <div className="py-1">
+              <button
+                onClick={() => {
+                  router.push("/u/dashboard");
+                  setShowMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+              >
+                <UserIcon className="w-4 h-4" />
+                Mon tableau de bord
+              </button>
+              
+              <button
+                onClick={() => {
+                  router.push("/u/dashboard/profil");
+                  setShowMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Mon profil
+              </button>
+              
+              <div className="border-t border-border my-1" />
+              
+              <button
+                onClick={async () => {
+                  await handleSignOut();
+                  setShowMenu(false);
+                  router.push("/");
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Se déconnecter
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback : afficher le bouton de connexion par défaut
   return (
-    <Button onClick={handleGoogleSignIn} variant="rdc">
+    <Button onClick={handleGoogleSignIn} variant="rdc" disabled={loading}>
       <svg className="w-5 h-5 " viewBox="0 0 24 24">
         <path
           fill="currentColor"

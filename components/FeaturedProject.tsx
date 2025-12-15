@@ -164,40 +164,35 @@ export default function FeaturedProject() {
       return null;
     };
 
-    // Fonction pour récupérer les stats GitHub
-    const fetchGithubStats= async (project: ProjectWithStats) => {
-      const githubInfo = getGithubInfo(project.link);
-      if (!githubInfo) {
-        return { ...project, isLoadingStats: false };
-      }
-
-      try {
-        const response = await fetch(
-          `https://api.github.com/repos/${githubInfo.owner}/${githubInfo.repo}`
-        );
-        
-        if (!response.ok) {
-          return { ...project, isLoadingStats: false };
+    // Récupérer les stats GitHub avec cache optimisé
+    const fetchStats = async () => {
+      const { getCachedGitHubStatsBatch } = await import("@/lib/utils/githubCache");
+      const repoUrls = projects
+        .map(p => p.link)
+        .filter(link => getGithubInfo(link) !== null);
+      
+      const statsMap = await getCachedGitHubStatsBatch(repoUrls, 3);
+      
+      const projectsWithStats = projects.map((project) => {
+        const stats = statsMap.get(project.link);
+        if (stats) {
+          return {
+            ...project,
+            githubStats: {
+              stars: stats.stars,
+              forks: stats.forks,
+              lastUpdated: new Date().toISOString(),
+            },
+            isLoadingStats: false,
+          };
         }
-
-        const data = await response.json();
-        return {
-          ...project,
-          githubStats: {
-            stars: data.stargazers_count,
-            forks: data.forks_count,
-            lastUpdated: data.updated_at,
-          },
-          isLoadingStats: false,
-        };
-      } catch (error) {
-        console.error(`Error fetching stats for ${project.name}:`, error);
         return { ...project, isLoadingStats: false };
-      }
+      });
+      
+      setProjects(projectsWithStats);
     };
 
-    // Récupérer les stats pour tous les projets
-    Promise.all(projects.map(fetchGithubStats)).then(setProjects);
+    fetchStats();
   }, []);
 
   return (

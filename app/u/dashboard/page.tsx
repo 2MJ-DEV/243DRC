@@ -49,6 +49,8 @@ export default function DashboardPage() {
         where("authorId", "==", user.uid),
         orderBy("createdAt", "desc"),
         limit(3)
+        // Note: Cette requête nécessite un index composite dans Firestore
+        // Collection: projects, Fields: authorId (Ascending) + createdAt (Descending)
       );
       
       const snapshot = await getDocs(projectsQuery);
@@ -59,8 +61,14 @@ export default function DashboardPage() {
       
       setUserProjects(projects);
     } catch (error: any) {
-      // Ignorer les erreurs offline au chargement initial
-      if (error.code !== 'unavailable') {
+      console.error("Erreur lors du chargement des données:", error);
+      
+      // Gestion d'erreur améliorée
+      if (error.code === 'failed-precondition') {
+        console.error("Index Firestore manquant. Créez l'index composite requis dans Firebase Console.");
+      } else if (error.code === 'permission-denied') {
+        console.error("Permission refusée. Vérifiez vos règles Firestore.");
+      } else if (error.code !== 'unavailable') {
         console.error("Erreur lors du chargement des données:", error);
       }
     }

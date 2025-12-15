@@ -6,9 +6,11 @@ import { auth, db } from "@/lib/firebaseClient";
 import { collection, query, where, getDocs, deleteDoc, doc, orderBy } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, ExternalLink, Star, GitFork } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Star, GitFork, Edit } from "lucide-react";
 import Link from "next/link";
 import { User } from "firebase/auth";
+import { useToast } from "@/components/ToastContainer";
+import { ConfirmModal } from "@/components/ui/modal";
 
 interface Project {
   id: string;
@@ -26,7 +28,10 @@ export default function MesProjetPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const router = useRouter();
+  const { showError, showSuccess } = useToast();
 
   useEffect(() => {
     if (!auth) {
@@ -39,6 +44,9 @@ export default function MesProjetPage() {
         router.push("/");
         return;
       }
+      setCurrentUser(user);
+      // Charger les projets une fois l'utilisateur authentifié
+      loadProjects(user.uid);
     });
 
     return () => unsubscribe();
@@ -55,6 +63,8 @@ export default function MesProjetPage() {
         collection(db, "projects"),
         where("authorId", "==", uid),
         orderBy("createdAt", "desc")
+        // Note: Cette requête nécessite un index composite dans Firestore
+        // Collection: projects, Fields: authorId (Ascending) + createdAt (Descending)
       );
       
       const snapshot = await getDocs(q);
@@ -65,31 +75,49 @@ export default function MesProjetPage() {
       
       setProjects(projectsList);
     } catch (error: any) {
-      if (error.code !== 'unavailable') {
-        console.error("Erreur lors du chargement des projets:", error);
+      console.error("Erreur lors du chargement des projets:", error);
+      
+      // Gestion d'erreur améliorée
+      if (error.code === 'failed-precondition') {
+        showError(
+          "Index Firestore manquant",
+          "Veuillez créer l'index composite requis : Collection: projects, Champs: authorId (Ascending) + createdAt (Descending)"
+        );
+      } else if (error.code === 'permission-denied') {
+        showError("Permission refusée", "Vérifiez vos règles Firestore dans Firebase Console");
+      } else if (error.code !== 'unavailable') {
+        showError("Erreur", "Une erreur est survenue lors du chargement des projets");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (projectId: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce projet ?")) {
-      return;
-    }
+  const handleDeleteClick = (projectId: string) => {
+    setProjectToDelete(projectId);
+    setDeleteConfirmOpen(true);
+  };
 
-    if (!db) {
-      alert("Impossible de supprimer le projet en mode hors ligne");
+  const handleDeleteConfirm = async () => {
+    if (!projectToDelete || !db) {
+      if (!db) {
+        showError("Mode hors ligne", "Impossible de supprimer le projet en mode hors ligne");
+      }
+      setDeleteConfirmOpen(false);
+      setProjectToDelete(null);
       return;
     }
 
     try {
-      await deleteDoc(doc(db, "projects", projectId));
-      setProjects(projects.filter(p => p.id !== projectId));
-      alert("Projet supprimé avec succès");
+      await deleteDoc(doc(db, "projects", projectToDelete));
+      setProjects(projects.filter(p => p.id !== projectToDelete));
+      showSuccess("Projet supprimé", "Le projet a été supprimé avec succès");
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
-      alert("Erreur lors de la suppression du projet");
+      showError("Erreur", "Une erreur est survenue lors de la suppression du projet");
+    } finally {
+      setDeleteConfirmOpen(false);
+      setProjectToDelete(null);
     }
   };
 
@@ -150,13 +178,24 @@ export default function MesProjetPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => window.open(project.repoUrl, "_blank")}
+                      title="Ouvrir le dépôt GitHub"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </Button>
+                    <Link href={`/u/dashboard/modifier-projet/${project.id}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Modifier le projet"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </Link>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleDelete(project.id)}
+                      onClick={() => handleDeleteClick(project.id)}
+                      title="Supprimer le projet"
                     >
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
@@ -194,6 +233,21 @@ export default function MesProjetPage() {
           ))}
         </div>
       )}
+
+      {/* Modal de confirmation de suppression */}
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setProjectToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Supprimer le projet"
+        message="Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        variant="destructive"
+      />
     </div>
   );
 }

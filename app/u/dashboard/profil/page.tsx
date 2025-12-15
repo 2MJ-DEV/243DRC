@@ -15,11 +15,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ToastContainer";
+import { Edit, MapPin, Briefcase, GraduationCap, Github, Linkedin, Twitter, ExternalLink } from "lucide-react";
 
 export default function ProfilPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [userProfile, setUserProfile] = useState({
     bio: "",
     location: "",
@@ -29,7 +32,17 @@ export default function ProfilPage() {
     linkedin: "",
     twitter: "",
   });
+  const [originalProfile, setOriginalProfile] = useState({
+    bio: "",
+    location: "",
+    university: "",
+    jobTitle: "",
+    github: "",
+    linkedin: "",
+    twitter: "",
+  });
   const router = useRouter();
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     if (!auth) {
@@ -61,7 +74,7 @@ export default function ProfilPage() {
 
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setUserProfile({
+        const profileData = {
           bio: data.bio || "",
           location: data.location || "",
           university: data.university || "",
@@ -69,7 +82,9 @@ export default function ProfilPage() {
           github: data.github || "",
           linkedin: data.linkedin || "",
           twitter: data.twitter || "",
-        });
+        };
+        setUserProfile(profileData);
+        setOriginalProfile(profileData);
       }
     } catch (error: any) {
       if (error.code !== "unavailable") {
@@ -78,6 +93,15 @@ export default function ProfilPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setUserProfile(originalProfile);
+    setIsEditing(false);
   };
 
   const handleSave = async () => {
@@ -95,10 +119,12 @@ export default function ProfilPage() {
         { merge: true }
       );
 
-      alert("Profil mis à jour avec succès !");
+      setOriginalProfile(userProfile);
+      setIsEditing(false);
+      showSuccess("Profil mis à jour", "Vos modifications ont été enregistrées avec succès !");
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
-      alert("Erreur lors de la sauvegarde du profil");
+      showError("Erreur", "Une erreur est survenue lors de la sauvegarde du profil");
     } finally {
       setSaving(false);
     }
@@ -114,89 +140,139 @@ export default function ProfilPage() {
 
   return (
     <div className="space-y-6">
-      {/* <div>
-        <h1 className="text-3xl font-bold">Mon Profil</h1>
-        <p className="text-muted-foreground">Gérez vos informations personnelles</p>
-      </div> */}
-
       <Card>
         <CardHeader>
-          <CardTitle>Informations de base</CardTitle>
-          <CardDescription>
-            Ces informations sont publiques et visibles par tous
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Informations de base</CardTitle>
+              <CardDescription>
+                Ces informations sont publiques et visibles par tous
+              </CardDescription>
+            </div>
+            {!isEditing && (
+              <Button onClick={handleEdit} variant="outline">
+                <Edit className="w-4 h-4 mr-2" />
+                Modifier le profil
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="">
-          <div className=" space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center gap-4 mb-6">
-              {user.photoURL && (
-                // eslint-disable-next-line @next/next/no-img-element
+              {user.photoURL ? (
                 <img
                   src={user.photoURL}
                   alt={user.displayName || "User"}
                   className="w-20 h-20 rounded-full border-4 border-primary/20"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
                 />
-              )}
+              ) : null}
+              <div 
+                className={`w-20 h-20 rounded-full border-4 border-primary/20 bg-primary/10 flex items-center justify-center text-primary font-semibold text-2xl ${user.photoURL ? 'hidden' : ''}`}
+              >
+                {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
+              </div>
               <div>
-                <p className="font-semibold text-lg">{user.displayName}</p>
+                <p className="font-semibold text-lg">{user.displayName || "Utilisateur"}</p>
                 <p className="text-muted-foreground">{user.email}</p>
               </div>
             </div>
 
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="jobTitle">Statut d'emploi</Label>
-                <Input
-                  id="jobTitle"
-                  placeholder="Ex: Développeur front-end, Étudiant..."
-                  value={userProfile.jobTitle}
-                  onChange={(e) =>
-                    setUserProfile({ ...userProfile, jobTitle: e.target.value })
-                  }
-                />
-              </div>
+            {isEditing ? (
+              <div className="grid gap-4">
+                <div>
+                  <Label htmlFor="jobTitle">Statut d'emploi</Label>
+                  <Input
+                    id="jobTitle"
+                    placeholder="Ex: Développeur front-end, Étudiant..."
+                    value={userProfile.jobTitle}
+                    onChange={(e) =>
+                      setUserProfile({ ...userProfile, jobTitle: e.target.value })
+                    }
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="location">Emplacement</Label>
-                <Input
-                  id="location"
-                  placeholder="Ex: Kinshasa, Lubumbashi..."
-                  value={userProfile.location}
-                  onChange={(e) =>
-                    setUserProfile({ ...userProfile, location: e.target.value })
-                  }
-                />
-              </div>
+                <div>
+                  <Label htmlFor="location">Emplacement</Label>
+                  <Input
+                    id="location"
+                    placeholder="Ex: Kinshasa, Lubumbashi..."
+                    value={userProfile.location}
+                    onChange={(e) =>
+                      setUserProfile({ ...userProfile, location: e.target.value })
+                    }
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="university">
-                  Université ou école supérieure
-                </Label>
-                <Input
-                  id="university"
-                  placeholder="Ex: Université de Kinshasa..."
-                  value={userProfile.university}
-                  onChange={(e) =>
-                    setUserProfile({
-                      ...userProfile,
-                      university: e.target.value,
-                    })
-                  }
-                />
-              </div>
+                <div>
+                  <Label htmlFor="university">
+                    Université ou école supérieure
+                  </Label>
+                  <Input
+                    id="university"
+                    placeholder="Ex: Université de Kinshasa..."
+                    value={userProfile.university}
+                    onChange={(e) =>
+                      setUserProfile({
+                        ...userProfile,
+                        university: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="bio">Bio</Label>
-                <Input
-                  id="bio"
-                  placeholder="Parlez-nous de vous..."
-                  value={userProfile.bio}
-                  onChange={(e) =>
-                    setUserProfile({ ...userProfile, bio: e.target.value })
-                  }
-                />
+                <div>
+                  <Label htmlFor="bio">Bio</Label>
+                  <Input
+                    id="bio"
+                    placeholder="Parlez-nous de vous..."
+                    value={userProfile.bio}
+                    onChange={(e) =>
+                      setUserProfile({ ...userProfile, bio: e.target.value })
+                    }
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {userProfile.jobTitle && (
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Statut d'emploi:</span>
+                    <span className="font-medium">{userProfile.jobTitle}</span>
+                  </div>
+                )}
+                {userProfile.location && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Emplacement:</span>
+                    <span className="font-medium">{userProfile.location}</span>
+                  </div>
+                )}
+                {userProfile.university && (
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Université:</span>
+                    <span className="font-medium">{userProfile.university}</span>
+                  </div>
+                )}
+                {userProfile.bio && (
+                  <div>
+                    <p className="text-muted-foreground mb-2">Bio:</p>
+                    <p className="text-foreground">{userProfile.bio}</p>
+                  </div>
+                )}
+                {!userProfile.jobTitle && !userProfile.location && !userProfile.university && !userProfile.bio && (
+                  <p className="text-muted-foreground italic">Aucune information n'a été renseignée. Cliquez sur "Modifier le profil" pour ajouter vos informations.</p>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -205,56 +281,104 @@ export default function ProfilPage() {
         <CardHeader>
           <CardTitle>Réseaux sociaux</CardTitle>
           <CardDescription>
-            Ajoutez vos liens de réseaux sociaux
+            {isEditing ? "Ajoutez vos liens de réseaux sociaux" : "Vos liens de réseaux sociaux"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="github">GitHub</Label>
-            <Input
-              id="github"
-              placeholder="https://github.com/votre-username"
-              value={userProfile.github}
-              onChange={(e) =>
-                setUserProfile({ ...userProfile, github: e.target.value })
-              }
-            />
-          </div>
+          {isEditing ? (
+            <>
+              <div>
+                <Label htmlFor="github">GitHub</Label>
+                <Input
+                  id="github"
+                  placeholder="https://github.com/votre-username"
+                  value={userProfile.github}
+                  onChange={(e) =>
+                    setUserProfile({ ...userProfile, github: e.target.value })
+                  }
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="linkedin">LinkedIn</Label>
-            <Input
-              id="linkedin"
-              placeholder="https://linkedin.com/in/votre-username"
-              value={userProfile.linkedin}
-              onChange={(e) =>
-                setUserProfile({ ...userProfile, linkedin: e.target.value })
-              }
-            />
-          </div>
+              <div>
+                <Label htmlFor="linkedin">LinkedIn</Label>
+                <Input
+                  id="linkedin"
+                  placeholder="https://linkedin.com/in/votre-username"
+                  value={userProfile.linkedin}
+                  onChange={(e) =>
+                    setUserProfile({ ...userProfile, linkedin: e.target.value })
+                  }
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="twitter">Twitter/X</Label>
-            <Input
-              id="twitter"
-              placeholder="https://twitter.com/votre-username"
-              value={userProfile.twitter}
-              onChange={(e) =>
-                setUserProfile({ ...userProfile, twitter: e.target.value })
-              }
-            />
-          </div>
+              <div>
+                <Label htmlFor="twitter">Twitter/X</Label>
+                <Input
+                  id="twitter"
+                  placeholder="https://twitter.com/votre-username"
+                  value={userProfile.twitter}
+                  onChange={(e) =>
+                    setUserProfile({ ...userProfile, twitter: e.target.value })
+                  }
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex gap-3">
+              {userProfile.github && (
+                <a
+                  href={userProfile.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-primary/10 transition-colors"
+                >
+                  <Github className="w-5 h-5" />
+                  <span>GitHub</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              )}
+              {userProfile.linkedin && (
+                <a
+                  href={userProfile.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-primary/10 transition-colors"
+                >
+                  <Linkedin className="w-5 h-5" />
+                  <span>LinkedIn</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              )}
+              {userProfile.twitter && (
+                <a
+                  href={userProfile.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted hover:bg-primary/10 transition-colors"
+                >
+                  <Twitter className="w-5 h-5" />
+                  <span>Twitter</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              )}
+              {!userProfile.github && !userProfile.linkedin && !userProfile.twitter && (
+                <p className="text-muted-foreground italic">Aucun lien de réseau social n'a été ajouté.</p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-4">
-        <Button variant="destructive" onClick={() => router.back()}>
-          Annuler
-        </Button>
-        <Button variant="rdc" onClick={handleSave} disabled={saving}>
-          {saving ? "Sauvegarde..." : "Enregistrer les modifications"}
-        </Button>
-      </div>
+      {isEditing && (
+        <div className="flex justify-end gap-4">
+          <Button variant="outline" onClick={handleCancel} disabled={saving}>
+            Annuler
+          </Button>
+          <Button variant="rdc" onClick={handleSave} disabled={saving}>
+            {saving ? "Sauvegarde..." : "Enregistrer les modifications"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

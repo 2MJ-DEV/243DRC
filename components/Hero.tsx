@@ -75,7 +75,7 @@ export default function Hero() {
             </Button>
           </Link>
 
-          <Link href="#" className="hover:shadow-md duration-300">
+          <Link href="/u/dashboard/ajouter-projet" className="hover:shadow-md duration-300">
             <Button variant="rdc">
               <span>Soumettre un projet</span>
               <Send size="30" />

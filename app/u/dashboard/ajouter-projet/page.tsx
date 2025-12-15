@@ -16,10 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useToast } from "@/components/ToastContainer";
 
 export default function AjouterProjetPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { showError, showSuccess } = useToast();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -30,22 +32,10 @@ export default function AjouterProjetPage() {
 
   const fetchGithubStats = async (url: string) => {
     try {
-      // Extraire owner/repo du lien GitHub
-      const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
-      if (!match) return { stars: 0, forks: 0 };
-
-      const [, owner, repo] = match;
-      const response = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}`
-      );
-
-      if (!response.ok) return { stars: 0, forks: 0 };
-
-      const data = await response.json();
-      return {
-        stars: data.stargazers_count || 0,
-        forks: data.forks_count || 0,
-      };
+      // Utiliser le cache GitHub pour éviter les limites de taux
+      const { getCachedGitHubStats } = await import("@/lib/utils/githubCache");
+      const stats = await getCachedGitHubStats(url);
+      return stats || { stars: 0, forks: 0 };
     } catch (error) {
       console.error("Erreur lors de la récupération des stats GitHub:", error);
       return { stars: 0, forks: 0 };
@@ -57,17 +47,17 @@ export default function AjouterProjetPage() {
 
     const user = auth?.currentUser;
     if (!user) {
-      alert("Vous devez être connecté pour ajouter un projet");
+      showError("Connexion requise", "Vous devez être connecté pour ajouter un projet");
       return;
     }
 
     if (!db) {
-      alert("Impossible d'ajouter un projet en mode hors ligne");
+      showError("Mode hors ligne", "Impossible d'ajouter un projet en mode hors ligne");
       return;
     }
 
     if (!formData.title || !formData.description || !formData.repoUrl) {
-      alert("Veuillez remplir tous les champs obligatoires");
+      showError("Champs manquants", "Veuillez remplir tous les champs obligatoires");
       return;
     }
 
@@ -92,6 +82,9 @@ export default function AjouterProjetPage() {
         updatedAt: new Date().toISOString(),
       });
 
+      // Afficher un message de succès
+      showSuccess("Projet ajouté", "Votre projet a été ajouté avec succès !");
+
       // Rediriger immédiatement
       router.push("/u/dashboard/mes-projets");
 
@@ -110,7 +103,7 @@ export default function AjouterProjetPage() {
         });
     } catch (error) {
       console.error("Erreur lors de l'ajout du projet:", error);
-      alert("Erreur lors de l'ajout du projet");
+      showError("Erreur", "Une erreur est survenue lors de l'ajout du projet");
       setLoading(false);
     }
   };
