@@ -1,0 +1,12 @@
+[debug] [2025-12-18T09:24:35.591Z] [Firebase Plugin] Activating Firebase extension.
+[info] [Firebase Plugin] Checked firebase-tools, is up to date!
+[debug] [2025-12-18T09:25:00.076Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-12-18T09:25:00.082Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-12-18T09:25:00.083Z] > authorizing via signed-in user (julesmukadi.dev@gmail.com)
+[debug] [2025-12-18T09:25:00.087Z] Checked if tokens are valid: false, expires at: 1765983841044
+[debug] [2025-12-18T09:25:00.088Z] Checked if tokens are valid: false, expires at: 1765983841044
+[debug] [2025-12-18T09:25:00.089Z] > refreshing access token with scopes: []
+[debug] [2025-12-18T09:25:00.094Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-12-18T09:25:00.095Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-12-18T09:25:00.113Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 3.0.0) on port 50001

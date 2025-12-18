@@ -137,7 +137,7 @@ export default function MesProjetPage() {
           <p className="text-muted-foreground">Gérez tous vos projets open source</p>
         </div>
         <Link href="/u/dashboard/ajouter-projet">
-          <Button>
+          <Button variant={'rdc'}>
             <Plus className="w-4 h-4 mr-2" />
             Ajouter un projet
           </Button>
@@ -146,7 +146,7 @@ export default function MesProjetPage() {
 
       {projects.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center">
+          <CardContent className="py-12 text-center flex justify-center">
             <div className="flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
                 <Plus className="w-8 h-8 text-muted-foreground" />
@@ -157,7 +157,7 @@ export default function MesProjetPage() {
                   Commencez par ajouter votre premier projet
                 </p>
                 <Link href="/u/dashboard/ajouter-projet">
-                  <Button>Ajouter un projet</Button>
+                  <Button variant={'rdc'}>Ajouter un projet</Button>
                 </Link>
               </div>
             </div>

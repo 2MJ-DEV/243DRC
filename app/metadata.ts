@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://243drc.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://243-drc.vercel.app";
 const siteName = "243 DRC - Plateforme Open Source pour Développeurs Congolais";
 const siteDescription = "Découvrez, partagez et contribuez aux projets open-source de la communauté tech congolaise. Plateforme dédiée aux développeurs de la RDC (République Démocratique du Congo).";
 

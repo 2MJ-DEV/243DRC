@@ -483,8 +483,9 @@ export default function ProfilPage() {
                 <li>Tous vos favoris</li>
                 <li>Toutes vos notifications</li>
               </ul>
-              <p className="text-sm text-muted-foreground mb-4 font-semibold">
-                ⚠️ Note : Vos projets et vos likes resteront disponibles pour la communauté même après la suppression de votre compte.
+              <p className="text-sm text-muted-foreground flex justify-start items-center gap-2 mb-4 font-semibold">
+                <AlertTriangle className="w-5 h-5" />
+                Note : Vos projets et vos likes resteront disponibles pour la communauté même après la suppression de votre compte.
               </p>
               <Button
                 variant="destructive"

@@ -60,10 +60,12 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center font-sans space-x-3">
+            <Link href={'https://github.com/2MJ-DEV/243DRC?tab=contributing-ov-file'}>
             <Button variant="default">
               <GithubIcon />
               <span className="hidden sm:inline">Contribuer</span>
             </Button>
+            </Link>
 
             <AuthButton />
           </div>

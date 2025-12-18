@@ -310,7 +310,7 @@ export default function ProfilPublicPage() {
                   {/* Statistiques - Design amélioré */}
                   <div className="flex md:flex-col gap-6 md:gap-4">
                     <Card className="border-2 shadow-md">
-                      <CardContent className="p-4 text-center">
+                      <CardContent className="p-4 text-center flex justify-center items-center gap-2">
                         <div className="text-4xl font-bold text-primary mb-1">{projects.length}</div>
                         <div className="text-sm text-muted-foreground font-medium">Projets</div>
                       </CardContent>
@@ -339,7 +339,7 @@ export default function ProfilPublicPage() {
         ) : (
           <div className="mb-8">
             <Card>
-              <CardContent className="py-8 text-center">
+              <CardContent className="py-8 text-center flex items-center justify-center">
                 <p className="text-sm text-muted-foreground">
                   Aucun lien GitHub renseigné. Ajoutez votre lien GitHub dans votre profil pour afficher votre activité.
                 </p>
@@ -360,13 +360,13 @@ export default function ProfilPublicPage() {
 
           {projects.length === 0 ? (
             <Card className="border-2">
-              <CardContent className="py-16 text-center">
+              <CardContent className="py-16 text-center flex flex-col items-center justify-center">
                 <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                   <Code className="w-10 h-10 text-muted-foreground" />
                 </div>
                 <h3 className="font-semibold text-xl mb-2">Aucun projet</h3>
                 <p className="text-muted-foreground">
-                  Cet utilisateur n'a pas encore ajouté de projets.
+                  Cet utilisateur n&#39;a pas encore ajouté de projets.
                 </p>
               </CardContent>
             </Card>

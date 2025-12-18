@@ -151,7 +151,7 @@ export default function FavorisPage() {
 
       {projects.length === 0 ? (
         <Card>
-          <CardContent className="py-16 text-center">
+          <CardContent className="py-16 flex flex-col text-center">
             <Bookmark className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="font-semibold text-xl mb-2">Aucun favori</h3>
             <p className="text-muted-foreground mb-4">

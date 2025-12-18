@@ -188,6 +188,9 @@ export default function AjouterProjetPage() {
                     setFormData({ ...formData, technologies: e.target.value })
                   }
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Veuillez espacer les technologies par des virgules
+                </p>
               </div>
 
               <div>
