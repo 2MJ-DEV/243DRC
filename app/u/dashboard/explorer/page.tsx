@@ -11,6 +11,7 @@ import { Star, GitFork, ExternalLink, Search, User, Loader2, Code } from "lucide
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { ProjectActions } from "@/components/ProjectActions";
+import { ProjectComments } from "@/components/ProjectComments";
 import Link from "next/link";
 
 interface Project {
@@ -134,15 +135,16 @@ export default function ExplorerPage() {
           setHasMore(false);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur lors du chargement des projets:", error);
       
       // Gestion d'erreur améliorée
-      if (error.code === 'failed-precondition') {
+      const firestoreError = error as { code?: string };
+      if (firestoreError.code === 'failed-precondition') {
         setError("Index Firestore manquant. Veuillez créer l'index requis dans Firebase Console.");
-      } else if (error.code === 'permission-denied') {
+      } else if (firestoreError.code === 'permission-denied') {
         setError("Permission refusée. Vérifiez vos règles Firestore.");
-      } else if (error.code !== 'unavailable') {
+      } else if (firestoreError.code !== 'unavailable') {
         setError("Erreur lors du chargement des projets. Veuillez réessayer.");
       }
     } finally {
@@ -323,18 +325,18 @@ export default function ExplorerPage() {
                   {/* FOOTER */}
                   <div className="px-6 pb-3 pt-0 border-t space-y-2">
                     <Button asChild variant="rdc" className="w-full h-9 text-sm">
-                      <a
-                        href={project.repoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex justify-center items-center gap-2"
-                      >
+                      <Link href={`/projets/${project.id}`} className="flex justify-center items-center gap-2">
                         Voir le projet
-                      </a>
+                      </Link>
                     </Button>
                     <div className="w-full flex justify-end">
                       <ProjectActions projectId={project.id} compact />
                     </div>
+                    <ProjectComments
+                      projectId={project.id}
+                      projectTitle={project.title}
+                      projectAuthorId={project.authorId}
+                    />
                   </div>
                 </Card>
               );
@@ -364,3 +366,5 @@ export default function ExplorerPage() {
     </div>
   );
 }
+
+

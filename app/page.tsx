@@ -34,7 +34,7 @@ export default function Home() {
         <p>
           243 DRC est la plateforme de référence pour les développeurs de la République Démocratique du Congo. 
           Créée par Jules Mukadi (2MJ-DEV), cette plateforme permet de découvrir, partager et contribuer aux projets open-source 
-          de la communauté tech congolaise. Rejoignez la communauté des développeurs RDC et boostez l'innovation open source en RDC.
+          de la communauté tech congolaise. Rejoignez la communauté des développeurs RDC et boostez l&#39;innovation open source en RDC.
         </p>
         <p>
           Mots-clés : 243drc, drc, rdc, 243, jules mukadi, 2mj, demj-dev, développeurs congolais, open source, 
@@ -53,3 +53,4 @@ export default function Home() {
     </>
   );
 }
+

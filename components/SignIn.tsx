@@ -1,32 +1,40 @@
 // components/SignIn.tsx
 "use client";
-import { auth } from "@/lib/firebaseClient";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db, googleProvider } from "@/lib/firebaseClient";
+import { signInWithPopup } from "firebase/auth";
 
 export default function SignIn() {
+  const router = useRouter();
+
   const signInWithGoogle = async () => {
-    if (!auth) {
-      console.error("Auth non initialisé");
+    if (!auth || !db || !googleProvider) {
+      console.error("Firebase non configuré correctement");
       return;
     }
 
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const idToken = await user.getIdToken();
 
-      // Envoie le idToken au serveur pour créer la session
-      await fetch("/api/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          createdAt: new Date().toISOString(),
+        });
+      }
 
-      // maintenant la session cookie est crée côté serveur
-    } catch (error: any) {
+      router.push("/u/dashboard");
+    } catch (error: unknown) {
       // Ignorer silencieusement l'erreur si l'utilisateur ferme la popup
-      if (error.code === 'auth/popup-closed-by-user') {
+      const authError = error as { code?: string };
+      if (authError.code === 'auth/popup-closed-by-user') {
         // L'utilisateur a simplement fermé la popup, ce n'est pas une erreur
         return;
       }
@@ -38,3 +46,5 @@ export default function SignIn() {
 
   return <button onClick={signInWithGoogle}>Se connecter avec Google</button>;
 }
+
+

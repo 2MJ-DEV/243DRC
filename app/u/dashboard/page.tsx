@@ -8,12 +8,12 @@ import { collection, query, where, getDocs, orderBy, limit } from "firebase/fire
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Plus, Search, FolderGit2, FolderGit2Icon, GitPullRequestCreateArrow, UsersRound } from "lucide-react";
+import { FolderGit2, FolderGit2Icon, GitPullRequestCreateArrow, UsersRound } from "lucide-react";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userProjects, setUserProjects] = useState<any[]>([]);
+  const [userProjects, setUserProjects] = useState<Array<{ id: string; title?: string; description?: string }>>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -34,13 +34,7 @@ export default function DashboardPage() {
     return () => unsubscribe();
   }, [router]);
 
-  useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user]);
-
-  const loadUserData = async () => {
+  async function loadUserData() {
     if (!user || !db) return;
 
     try {
@@ -60,19 +54,28 @@ export default function DashboardPage() {
       }));
       
       setUserProjects(projects);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur lors du chargement des données:", error);
       
       // Gestion d'erreur améliorée
-      if (error.code === 'failed-precondition') {
+      const firestoreError = error as { code?: string };
+      if (firestoreError.code === 'failed-precondition') {
         console.error("Index Firestore manquant. Créez l'index composite requis dans Firebase Console.");
-      } else if (error.code === 'permission-denied') {
+      } else if (firestoreError.code === 'permission-denied') {
         console.error("Permission refusée. Vérifiez vos règles Firestore.");
-      } else if (error.code !== 'unavailable') {
+      } else if (firestoreError.code !== 'unavailable') {
         console.error("Erreur lors du chargement des données:", error);
       }
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      setTimeout(() => {
+        void loadUserData();
+      }, 0);
+    }
+  }, [user]);
 
   if (loading || !user) {
     return (
@@ -162,3 +165,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+

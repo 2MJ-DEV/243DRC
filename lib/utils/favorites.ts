@@ -104,9 +104,10 @@ export async function getFavoriteCount(projectId: string): Promise<number> {
     );
     const snapshot = await getDocs(favoritesQuery);
     return snapshot.size;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Ignorer les erreurs de permission silencieusement pour les utilisateurs non connectés
-    if (error?.code === 'permission-denied') {
+    const firestoreError = error as { code?: string };
+    if (firestoreError.code === 'permission-denied') {
       console.warn("Permission refusée pour lire les favoris. Les règles Firestore doivent permettre la lecture publique.");
       return 0;
     }
@@ -114,4 +115,6 @@ export async function getFavoriteCount(projectId: string): Promise<number> {
     return 0;
   }
 }
+
+
 

@@ -15,7 +15,7 @@ export default function ScrollLinked() {
         top: 0,
         left: 0,
         right: 0,
-        height: "5px",
+        height: "2px",
         transformOrigin: "0 0",
         backgroundColor: "#007FFF",
       }}

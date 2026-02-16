@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { projectsData, ProjectWithStats } from "../data/projects";
 import {
   Card,
@@ -133,14 +134,12 @@ function ProjectCard({ project }: ProjectCardProps) {
             variant="rdc"
             className="w-full"
           >
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href={`/projets/${project.id}`}
               className="flex justify-center items-center gap-2"
             >
               Voir le projet
-            </a>
+            </Link>
           </Button>
         </CardFooter>
       </Card>

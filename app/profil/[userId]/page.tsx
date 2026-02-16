@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { auth, db } from "@/lib/firebaseClient";
 import { doc, getDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import {
@@ -26,9 +27,9 @@ import {
   GitFork,
   Code,
   Users,
-  ArrowLeft
+  ArrowLeft,
+  MessageCircle
 } from "lucide-react";
-import Link from "next/link";
 import GitHubActivity from "@/components/GitHubActivity";
 
 interface UserProfile {
@@ -83,7 +84,7 @@ export default function ProfilPublicPage() {
         const userDoc = await getDoc(doc(db, "users", userId));
         
         if (!userDoc.exists()) {
-          // Si le document n'existe pas dans Firestore, essayer de récupérer depuis auth
+          // Si le document n&#39;existe pas dans Firestore, essayer de récupérer depuis auth
           // Pour l'instant, on affiche une erreur
           setLoading(false);
           return;
@@ -123,8 +124,8 @@ export default function ProfilPublicPage() {
               ...doc.data(),
             })) as Project[];
             setProjects(projectsList);
-          } catch (error: any) {
-            // Si l'index n'existe pas, charger sans orderBy
+          } catch (error: unknown) {
+            // Si l'index n&#39;existe pas, charger sans orderBy
             if (error.code === 'failed-precondition') {
               const projectsQuerySimple = query(
                 collection(db, "projects"),
@@ -170,11 +171,11 @@ export default function ProfilPublicPage() {
           <CardContent className="py-12 text-center">
             <h2 className="text-2xl font-bold mb-4">Profil introuvable</h2>
             <p className="text-muted-foreground mb-6">
-              Ce profil n'existe pas ou n'est plus disponible.
+              Ce profil n&#39;existe pas ou n&#39;est plus disponible.
             </p>
             <Button onClick={() => router.push("/explorer-les-projets")}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour à l'exploration
+              Retour à l&#39;exploration
             </Button>
           </CardContent>
         </Card>
@@ -324,6 +325,16 @@ export default function ProfilPublicPage() {
                         Modifier mon profil
                       </Button>
                     )}
+                    {auth?.currentUser?.uid && auth.currentUser.uid !== userId && (
+                      <Button
+                        variant="rdc"
+                        onClick={() => router.push(`/u/dashboard/messages?userId=${userId}`)}
+                        className="md:w-full"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Envoyer un message
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -432,13 +443,11 @@ export default function ProfilPublicPage() {
                       )}
                     </CardContent>
                     <CardFooter className="pt-0">
-                      <Button
-                        variant="rdc"
-                        className="w-full group-hover:shadow-md transition-all"
-                        onClick={() => window.open(project.repoUrl, "_blank")}
-                      >
-                        Voir le projet
-                        <ExternalLink className="w-4 h-4 ml-2" />
+                      <Button asChild variant="rdc" className="w-full group-hover:shadow-md transition-all">
+                        <Link href={`/projets/${project.id}`}>
+                          Voir le projet
+                          <ExternalLink className="w-4 h-4 ml-2" />
+                        </Link>
                       </Button>
                     </CardFooter>
                   </Card>
@@ -451,4 +460,6 @@ export default function ProfilPublicPage() {
     </div>
   );
 }
+
+
 

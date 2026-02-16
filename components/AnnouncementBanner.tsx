@@ -29,7 +29,7 @@ export default function AnnouncementBanner({
 
   const handleDismiss = useCallback(() => {
     setIsAnimating(false);
-    setIsBannerVisible(false);
+    setTimeout(() => setIsBannerVisible(false), 0);
     setTimeout(() => {
       setIsVisible(false);
       if (dismissible) {
@@ -42,8 +42,8 @@ export default function AnnouncementBanner({
     // Vérifier si l'annonce a été fermée précédemment
     const isDismissed = localStorage.getItem(storageKey);
     if (!isDismissed) {
-      setIsVisible(true);
-      setIsBannerVisible(true);
+      setTimeout(() => setIsVisible(true), 0);
+      setTimeout(() => setIsBannerVisible(true), 0);
       setTimeout(() => setIsAnimating(true), 10);
       
       // Disparaître automatiquement après 8 secondes
@@ -54,7 +54,7 @@ export default function AnnouncementBanner({
       return () => clearTimeout(autoHideTimer);
     } else {
       // Si la bannière a déjà été fermée, mettre à jour le contexte
-      setIsBannerVisible(false);
+      setTimeout(() => setIsBannerVisible(false), 0);
     }
   }, [storageKey, handleDismiss, setIsBannerVisible]);
 
@@ -129,3 +129,4 @@ export default function AnnouncementBanner({
     </div>
   );
 }
+

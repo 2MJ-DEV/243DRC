@@ -90,8 +90,9 @@ export default function ProfilPage() {
         setUserProfile(profileData);
         setOriginalProfile(profileData);
       }
-    } catch (error: any) {
-      if (error.code !== "unavailable") {
+    } catch (error: unknown) {
+      const firestoreError = error as { code?: string };
+      if (firestoreError.code !== "unavailable") {
         console.error("Erreur lors du chargement du profil:", error);
       }
     } finally {
@@ -189,17 +190,18 @@ export default function ProfilPage() {
         // Forcer le rechargement pour s'assurer que l'utilisateur est bien déconnecté
         window.location.href = "/";
       }, 2000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur lors de la suppression du compte:", error);
       
-      if (error.code === 'auth/requires-recent-login') {
+      const authError = error as { code?: string };
+      if (authError.code === 'auth/requires-recent-login') {
         showError(
           "Reconnexion requise", 
           "Pour des raisons de sécurité, vous devez vous reconnecter avant de supprimer votre compte."
         );
         setShowDeleteModal(false);
-        // Rediriger vers la page de connexion
-        router.push("/sign-in");
+        // La page /sign-in n'existe pas: revenir vers l'accueil pour relancer l'auth Google.
+        router.push("/");
       } else {
         showError(
           "Erreur lors de la suppression", 
@@ -267,7 +269,7 @@ export default function ProfilPage() {
             {isEditing ? (
               <div className="grid gap-4">
                 <div>
-                  <Label htmlFor="jobTitle">Statut d'emploi</Label>
+                  <Label htmlFor="jobTitle">Statut d&#39;emploi</Label>
                   <Input
                     id="jobTitle"
                     placeholder="Ex: Développeur front-end, Étudiant..."
@@ -324,7 +326,7 @@ export default function ProfilPage() {
                 {userProfile.jobTitle && (
                   <div className="flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Statut d'emploi:</span>
+                    <span className="text-muted-foreground">Statut d&#39;emploi:</span>
                     <span className="font-medium">{userProfile.jobTitle}</span>
                   </div>
                 )}
@@ -349,7 +351,7 @@ export default function ProfilPage() {
                   </div>
                 )}
                 {!userProfile.jobTitle && !userProfile.location && !userProfile.university && !userProfile.bio && (
-                  <p className="text-muted-foreground italic">Aucune information n'a été renseignée. Cliquez sur "Modifier le profil" pour ajouter vos informations.</p>
+                  <p className="text-muted-foreground italic">Aucune information n&#39;a été renseignée. Cliquez sur &quot;Modifier le profil&quot; pour ajouter vos informations.</p>
                 )}
               </div>
             )}
@@ -442,7 +444,7 @@ export default function ProfilPage() {
                 </a>
               )}
               {!userProfile.github && !userProfile.linkedin && !userProfile.twitter && (
-                <p className="text-muted-foreground italic">Aucun lien de réseau social n'a été ajouté.</p>
+                <p className="text-muted-foreground italic">Aucun lien de réseau social n&#39;a été ajouté.</p>
               )}
             </div>
           )}
@@ -530,3 +532,7 @@ Après confirmation, vous serez automatiquement déconnecté et votre compte n'e
     </div>
   );
 }
+
+
+
+
