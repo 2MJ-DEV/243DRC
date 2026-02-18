@@ -6,7 +6,7 @@ import { auth, db } from "@/lib/firebaseClient";
 import { collection, query, where, getDocs, deleteDoc, doc, orderBy } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2, ExternalLink, Star, GitFork, Edit } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Star, GitFork, Edit, FileText } from "lucide-react";
 import Link from "next/link";
 import { User } from "firebase/auth";
 import { useToast } from "@/components/ToastContainer";
@@ -74,18 +74,19 @@ export default function MesProjetPage() {
       })) as Project[];
       
       setProjects(projectsList);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur lors du chargement des projets:", error);
       
       // Gestion d'erreur améliorée
-      if (error.code === 'failed-precondition') {
+      const firestoreError = error as { code?: string };
+      if (firestoreError.code === 'failed-precondition') {
         showError(
           "Index Firestore manquant",
           "Veuillez créer l'index composite requis : Collection: projects, Champs: authorId (Ascending) + createdAt (Descending)"
         );
-      } else if (error.code === 'permission-denied') {
+      } else if (firestoreError.code === 'permission-denied') {
         showError("Permission refusée", "Vérifiez vos règles Firestore dans Firebase Console");
-      } else if (error.code !== 'unavailable') {
+      } else if (firestoreError.code !== 'unavailable') {
         showError("Erreur", "Une erreur est survenue lors du chargement des projets");
       }
     } finally {
@@ -191,6 +192,15 @@ export default function MesProjetPage() {
                         <Edit className="w-4 h-4" />
                       </Button>
                     </Link>
+                    <Link href={`/projets/${project.id}`}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Voir la page detaillee"
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
+                    </Link>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -251,3 +261,5 @@ export default function MesProjetPage() {
     </div>
   );
 }
+
+

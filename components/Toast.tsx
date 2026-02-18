@@ -21,7 +21,11 @@ export function Toast({ title, description, type = "success", duration = 5000, o
 
     // Auto-fermeture après duration
     const timer = setTimeout(() => {
-      handleClose();
+      setIsExiting(true);
+      setTimeout(() => {
+        setIsVisible(false);
+        onClose?.();
+      }, 300);
     }, duration);
 
     return () => clearTimeout(timer);
@@ -129,3 +133,5 @@ export function Toast({ title, description, type = "success", duration = 5000, o
     </div>
   );
 }
+
+

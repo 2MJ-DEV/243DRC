@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 /**
  * Script pour créer automatiquement les issues GitHub depuis ISSUES_TODO.md

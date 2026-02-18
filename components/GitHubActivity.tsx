@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, TrendingUp } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface GitHubActivityProps {
@@ -12,6 +12,15 @@ interface ContributionDay {
   date: string;
   count: number;
   level: number; // 0-4 pour les niveaux de couleur
+}
+
+interface GitHubEvent {
+  created_at: string;
+  type: string;
+  payload?: {
+    commits?: unknown[];
+    action?: string;
+  };
 }
 
 export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
@@ -46,7 +55,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
         
         // Récupérer tous les événements publics (jusqu'à 300 pour avoir une bonne couverture)
         // L'API GitHub limite à 300 événements par requête
-        const allEvents: any[] = [];
+        const allEvents: GitHubEvent[] = [];
         let page = 1;
         let hasMore = true;
         
@@ -72,7 +81,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
             return;
           }
 
-          const events = await response.json();
+          const events = (await response.json()) as GitHubEvent[];
           if (events.length === 0) {
             hasMore = false;
           } else {
@@ -89,7 +98,7 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
         const contributionsMap = new Map<string, number>();
 
         // Compter les événements par jour (PushEvent compte pour plusieurs contributions)
-        allEvents.forEach((event: any) => {
+        allEvents.forEach((event: GitHubEvent) => {
           const eventDate = new Date(event.created_at);
           if (eventDate >= oneYearAgo) {
             const dateKey = eventDate.toISOString().split('T')[0];
@@ -420,4 +429,5 @@ export default function GitHubActivity({ githubUrl }: GitHubActivityProps) {
     </Card>
   );
 }
+
 

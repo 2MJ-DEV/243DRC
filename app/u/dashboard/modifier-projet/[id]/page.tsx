@@ -165,10 +165,11 @@ export default function ModifierProjetPage() {
             console.error("Erreur lors de la mise à jour des stats:", err);
           });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erreur lors de la modification du projet:", error);
       
-      if (error.code === 'permission-denied') {
+      const firestoreError = error as { code?: string };
+      if (firestoreError.code === 'permission-denied') {
         showError("Permission refusée", "Vous n'êtes pas autorisé à modifier ce projet");
       } else {
         showError("Erreur", "Une erreur est survenue lors de la modification du projet");
@@ -288,4 +289,5 @@ export default function ModifierProjetPage() {
     </div>
   );
 }
+
 

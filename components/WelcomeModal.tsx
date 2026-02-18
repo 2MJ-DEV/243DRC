@@ -15,7 +15,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     if (isOpen) {
       setTimeout(() => setIsVisible(true), 50);
     } else {
-      setIsVisible(false);
+      setTimeout(() => setIsVisible(false), 0);
     }
   }, [isOpen]);
 
@@ -77,7 +77,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                     Collaboration Ouverte
                   </h3>
                   <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                    Rejoignez une communauté passionnée unie par la passion du code ouvert et de l'innovation.
+                    Rejoignez une communauté passionnée unie par la passion du code ouvert et de l&#39;innovation.
                   </p>
                 </div>
 
@@ -87,7 +87,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                     Impact Local
                   </h3>
                   <p className="text-xs text-red-600 dark:text-red-400">
-                    Vos contributions ont un impact direct sur l'écosystème numérique congolais et africain dans son ensemble.
+                    Vos contributions ont un impact direct sur l&#39;écosystème numérique congolais et africain dans son ensemble.
                   </p>
                 </div>
               </div>
@@ -99,7 +99,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
                 onClick={onClose}
                 className="w-full px-6 py-3.5 bg-[#007FFF] hover:bg-[#0066CC] text-white text-base font-semibold rounded-xl transition-all duration-200"
               >
-                Commencer l'exploration
+                Commencer l&#39;exploration
               </button>
             </div>
           </div>
@@ -157,3 +157,7 @@ export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
     </div>
   );
 }
+
+
+
+

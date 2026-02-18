@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import projectsData from "@/data/projects.json";
-import { auth, db } from "@/lib/firebaseClient";
+import { db } from "@/lib/firebaseClient";
 import { collection, getDocs, orderBy, query, limit, startAfter, DocumentSnapshot } from "firebase/firestore";
 import {
   Card,
@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { ProjectActions } from "@/components/ProjectActions";
+import { ProjectComments } from "@/components/ProjectComments";
 
 interface Project {
   id: string;
@@ -174,18 +175,23 @@ function ProjectCard({ project }: ProjectCardProps) {
         {/* FOOTER */}
         <CardFooter className="flex flex-col gap-3 border-t">
           <Button asChild variant="rdc" className="w-full">
-            <a
-              href={project.link || project.repoUrl || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href={`/projets/${project.id || project.name}`}
               className="flex justify-center items-center gap-2"
             >
               Voir le projet
-            </a>
+            </Link>
           </Button>
           {(project.id || project.name) && (
-            <div className="w-full flex justify-end">
-              <ProjectActions projectId={project.id || project.name} compact />
+            <div className="w-full space-y-2">
+              <div className="flex justify-end">
+                <ProjectActions projectId={project.id || project.name} compact />
+              </div>
+              <ProjectComments
+                projectId={project.id || project.name}
+                projectTitle={project.name || project.title}
+                projectAuthorId={project.authorId}
+              />
             </div>
           )}
         </CardFooter>
@@ -283,11 +289,12 @@ export default function ExplorerLesProjets() {
             
             allProjects.push(...allFirestoreProjects);
             console.log(`Chargé ${allFirestoreProjects.length} projets depuis Firestore`);
-          } catch (firestoreError: any) {
+          } catch (firestoreError: unknown) {
             console.error("Erreur lors du chargement des projets Firestore:", firestoreError);
             
             // Si l'erreur est due à l'authentification, on continue avec les projets JSON
-            if (firestoreError.code === 'permission-denied') {
+            const err = firestoreError as { code?: string };
+            if (err.code === "permission-denied") {
               console.warn("Permission refusée pour lire Firestore. Affichage des projets JSON uniquement.");
             }
             // Continuer même si Firestore échoue, on aura au moins les projets JSON
@@ -448,3 +455,5 @@ export default function ExplorerLesProjets() {
     </div>
   );
 }
+
+

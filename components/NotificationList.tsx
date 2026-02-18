@@ -115,7 +115,7 @@ export function NotificationList({ onClose }: NotificationListProps) {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
             <p className="text-sm text-muted-foreground mt-2">Chargement...</p>
             <p className="text-xs text-muted-foreground mt-2">
-              Si cela prend trop de temps, l'index Firestore est peut-être en cours de construction.
+              Si cela prend trop de temps, l&#39;index Firestore est peut-être en cours de construction.
             </p>
           </div>
         ) : notifications.length === 0 ? (
@@ -177,4 +177,5 @@ export function NotificationList({ onClose }: NotificationListProps) {
     </Card>
   );
 }
+
 

@@ -246,7 +246,7 @@ export default function RencontresPage() {
           } else {
             lastDoc = snapshot.docs[snapshot.docs.length - 1];
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Si l'index n'existe pas ou erreur, charger TOUS les utilisateurs sans orderBy
           if (error.code === 'failed-precondition' || error.code === 'permission-denied') {
             // Charger tous les utilisateurs sans limite
@@ -334,7 +334,7 @@ export default function RencontresPage() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Rencontres</h1>
         <p className="text-muted-foreground">
-          Découvrez et connectez-vous avec d'autres développeurs de la communauté 243 DRC
+          Découvrez et connectez-vous avec d&#39;autres développeurs de la communauté 243 DRC
         </p>
       </div>
 
@@ -364,8 +364,8 @@ export default function RencontresPage() {
                 <h3 className="font-semibold text-lg mb-2">Aucun utilisateur trouvé</h3>
                 <p className="text-muted-foreground">
                   {searchTerm
-                    ? "Essayez avec d'autres mots-clés pour trouver des développeurs de la communauté."
-                    : "Aucun autre utilisateur n'est inscrit pour le moment. Revenez plus tard pour découvrir d'autres développeurs !"}
+                    ? "Essayez avec d&#39;autres mots-clés pour trouver des développeurs de la communauté."
+                    : "Aucun autre utilisateur n&#39;est inscrit pour le moment. Revenez plus tard pour découvrir d&#39;autres développeurs !"}
                 </p>
               </div>
             </div>
@@ -381,4 +381,6 @@ export default function RencontresPage() {
     </div>
   );
 }
+
+
 

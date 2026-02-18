@@ -6,8 +6,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     "",
     "/explorer-les-projets",
-    "/sign-in",
-    "/sign-up",
   ];
 
   return routes.map((route) => ({

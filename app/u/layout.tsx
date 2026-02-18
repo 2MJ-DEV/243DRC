@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { User, signOut } from "firebase/auth";
-import { auth } from "@/lib/firebaseClient";
+import { auth, db } from "@/lib/firebaseClient";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ToastContainer";
 import Link from "next/link";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import {
   Home,
   User as UserIcon,
@@ -16,10 +17,10 @@ import {
   LogOut,
   Users,
   Bookmark,
+  MessageSquare,
 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import LenisScroll from "@/components/ui/LenisScroll";
-import ScrollLinked from "@/components/ui/ScrollLinked";
 
 export default function DashboardLayout({
   children,
@@ -28,6 +29,7 @@ export default function DashboardLayout({
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const router = useRouter();
   const pathname = usePathname();
   const { showInfo } = useToast();
@@ -49,6 +51,34 @@ export default function DashboardLayout({
 
     return () => unsubscribe();
   }, [router]);
+
+  useEffect(() => {
+    if (!db || !user) return;
+
+    const unreadQuery = query(
+      collection(db, "privateMessages"),
+      where("participants", "array-contains", user.uid)
+    );
+
+    const unsubscribe = onSnapshot(unreadQuery, (snapshot) => {
+      const unreadCount = snapshot.docs.reduce((count, messageDoc) => {
+        const data = messageDoc.data() as {
+          receiverId?: string;
+          read?: boolean;
+        };
+
+        if (data.receiverId === user.uid && data.read === false) {
+          return count + 1;
+        }
+        return count;
+      }, 0);
+
+      setUnreadMessagesCount(unreadCount);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   const handleSignOut = async () => {
     if (!auth) {
       console.error("Auth non initialisé");
@@ -86,6 +116,12 @@ export default function DashboardLayout({
     },
     { icon: Search, label: "Explorer", href: "/u/dashboard/explorer" },
     { icon: Bookmark, label: "Favoris", href: "/u/dashboard/favoris" },
+    {
+      icon: MessageSquare,
+      label: "Messages",
+      href: "/u/dashboard/messages",
+      badge: unreadMessagesCount,
+    },
     { icon: Users, label: "Rencontres", href: "/u/dashboard/rencontres" },
   ];
 
@@ -174,7 +210,12 @@ export default function DashboardLayout({
                     }`}
                   >
                     <item.icon className="w-5 h-5" />
-                    {item.label}
+                    <span>{item.label}</span>
+                    {!!item.badge && item.badge > 0 && (
+                      <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
+                        {item.badge > 9 ? "9+" : item.badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

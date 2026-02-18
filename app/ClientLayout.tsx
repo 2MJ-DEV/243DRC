@@ -42,7 +42,7 @@ export default function ClientLayout({
             type="info"
             link={{
               text: "En savoir plus",
-              href: "/about"
+              href: "/explorer-les-projets"
             }}
             dismissible={true}
             storageKey="welcome-banner-dismissed"

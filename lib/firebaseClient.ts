@@ -14,8 +14,10 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Vérifier que toutes les variables sont définies
-const isConfigValid = Object.values(firebaseConfig).every(value => value !== undefined);
+// Vérifier que toutes les variables sont définies et non vides
+const isConfigValid = Object.values(firebaseConfig).every(
+  (value) => typeof value === "string" && value.trim().length > 0
+);
 
 if (!isConfigValid) {
   console.error("Firebase configuration is incomplete. Check your .env file.");

@@ -18,7 +18,6 @@ export default function AuthButton() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [imageError, setImageError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -27,29 +26,28 @@ export default function AuthButton() {
   useEffect(() => {
     // Attendre que Firebase soit initialisé côté client
     if (typeof window === "undefined") {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 0);
       return;
     }
 
     // Si auth n'est pas disponible, afficher le bouton de connexion
     if (!auth) {
-      console.warn("Firebase Auth n'est pas initialisé");
-      setLoading(false);
-      setUser(null);
+      console.warn("Firebase Auth unavailable");
+      setTimeout(() => setLoading(false), 0);
       return;
     }
 
     // Vérifier l'état actuel immédiatement
     if (auth.currentUser) {
-      setUser(auth.currentUser);
-      setLoading(false);
+      setTimeout(() => {
+        setUser(auth.currentUser);
+        setLoading(false);
+      }, 0);
     }
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log("Auth state changed:", currentUser ? `User logged in: ${currentUser.email}` : "User logged out");
       setUser(currentUser);
       setLoading(false);
-      setError(null);
       // Réinitialiser l'erreur d'image quand l'utilisateur change
       setImageError(false);
       // Fermer le menu si l'utilisateur se déconnecte
@@ -80,13 +78,12 @@ export default function AuthButton() {
 
   const handleGoogleSignIn = async () => {
     if (!auth || !googleProvider || !db) {
-      setError("Firebase n'est pas configuré correctement");
+      console.error("Firebase n'est pas configuré correctement");
       return;
     }
 
     try {
       setLoading(true);
-      setError(null);
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       // Sauvegarder les données utilisateur dans Firestore
@@ -112,7 +109,7 @@ export default function AuthButton() {
 
       // Redirection vers le dashboard après connexion réussie
       router.push("/u/dashboard");
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Ignorer silencieusement l'erreur si l'utilisateur ferme la popup
       if (error.code === 'auth/popup-closed-by-user') {
         // L'utilisateur a simplement fermé la popup, ce n'est pas une erreur
@@ -122,7 +119,6 @@ export default function AuthButton() {
       
       // Pour les autres erreurs, les afficher
       console.error("Erreur lors de la connexion:", error);
-      setError(error.message || "Erreur lors de la connexion");
       setLoading(false);
     }
   };
@@ -179,14 +175,6 @@ export default function AuthButton() {
 
   // Afficher le profil utilisateur si connecté
   if (user) {
-    console.log("Rendering user profile:", {
-      hasPhotoURL: !!user.photoURL,
-      photoURL: user.photoURL,
-      imageError,
-      displayName: user.displayName,
-      email: user.email
-    });
-
     return (
       <div className="relative" ref={menuRef}>
         <button
@@ -199,12 +187,10 @@ export default function AuthButton() {
               src={user.photoURL}
               alt={user.displayName || "User"}
               className="w-10 h-10 rounded-full border-2 border-primary/20 hover:border-primary/50 transition-colors object-cover flex-shrink-0"
-              onError={(e) => {
-                console.error("Erreur de chargement de l'image de profil:", user.photoURL);
+              onError={() => {
                 setImageError(true);
               }}
               onLoad={() => {
-                console.log("Image de profil chargée avec succès:", user.photoURL);
                 setImageError(false);
               }}
             />
@@ -295,3 +281,8 @@ export default function AuthButton() {
     </Button>
   );
 }
+
+
+
+
+

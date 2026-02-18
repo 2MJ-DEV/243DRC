@@ -73,14 +73,17 @@ service cloud.firestore {
     
     // Règles pour la collection notifications
     match /notifications/{notificationId} {
-      // Permettre la lecture si l'utilisateur est authentifié
-      // Le code côté client filtre toujours par userId dans les requêtes (where("userId", "==", user.uid))
-      // Cette règle permet les requêtes avec where() et orderBy()
-      allow read: if request.auth != null;
+      // Lecture strictement limitée au propriétaire de la notification.
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.userId;
       
-      // Permettre la création par n'importe quel utilisateur authentifié
-      // (pour créer des notifications pour d'autres utilisateurs)
-      allow create: if request.auth != null;
+      // Création autorisée si l'utilisateur s'attribue sa notification
+      // ou s'il en est explicitement l'émetteur (fromUserId).
+      allow create: if request.auth != null
+                    && (
+                      request.resource.data.userId == request.auth.uid
+                      || request.resource.data.fromUserId == request.auth.uid
+                    );
       
       // Permettre la mise à jour seulement au propriétaire (pour marquer comme lue)
       allow update: if request.auth != null 
@@ -89,6 +92,42 @@ service cloud.firestore {
       // Permettre la suppression seulement au propriétaire
       allow delete: if request.auth != null 
                    && resource.data.userId == request.auth.uid;
+    }
+
+    // Règles pour les commentaires des projets
+    match /comments/{commentId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 500;
+
+      allow update, delete: if request.auth != null
+                            && resource.data.userId == request.auth.uid;
+    }
+
+    // Règles pour la messagerie privée
+    match /privateMessages/{messageId} {
+      allow read: if request.auth != null
+                  && request.auth.uid in resource.data.participants;
+
+      allow create: if request.auth != null
+                    && request.resource.data.senderId == request.auth.uid
+                    && request.resource.data.receiverId is string
+                    && request.resource.data.participants is list
+                    && request.resource.data.participants.size() == 2
+                    && request.resource.data.participants.hasAll([
+                      request.auth.uid,
+                      request.resource.data.receiverId
+                    ])
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 2000;
+
+      allow update, delete: if request.auth != null
+                            && request.auth.uid in resource.data.participants;
     }
   }
 }

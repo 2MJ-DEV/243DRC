@@ -155,7 +155,7 @@ export default function FavorisPage() {
             <Bookmark className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="font-semibold text-xl mb-2">Aucun favori</h3>
             <p className="text-muted-foreground mb-4">
-              Vous n'avez pas encore ajouté de projets à vos favoris.
+              Vous n&#39;avez pas encore ajouté de projets à vos favoris.
             </p>
             <Link href="/u/dashboard/explorer">
               <Button variant="rdc">Explorer les projets</Button>
@@ -246,4 +246,5 @@ export default function FavorisPage() {
     </div>
   );
 }
+
 
