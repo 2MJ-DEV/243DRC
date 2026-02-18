@@ -126,7 +126,13 @@ export default function ProfilPublicPage() {
             setProjects(projectsList);
           } catch (error: unknown) {
             // Si l'index n&#39;existe pas, charger sans orderBy
-            if (error.code === 'failed-precondition') {
+            const isFailedPreconditionError =
+              typeof error === "object" &&
+              error !== null &&
+              "code" in error &&
+              (error as { code?: string }).code === "failed-precondition";
+
+            if (isFailedPreconditionError) {
               const projectsQuerySimple = query(
                 collection(db, "projects"),
                 where("authorId", "==", userId)

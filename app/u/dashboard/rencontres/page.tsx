@@ -248,9 +248,20 @@ export default function RencontresPage() {
           }
         } catch (error: unknown) {
           // Si l'index n'existe pas ou erreur, charger TOUS les utilisateurs sans orderBy
-          if (error.code === 'failed-precondition' || error.code === 'permission-denied') {
+          const firestoreErrorCode =
+            typeof error === "object" &&
+            error !== null &&
+            "code" in error &&
+            typeof (error as { code?: unknown }).code === "string"
+              ? (error as { code: string }).code
+              : null;
+
+          if (
+            firestoreErrorCode === "failed-precondition" ||
+            firestoreErrorCode === "permission-denied"
+          ) {
             // Charger tous les utilisateurs sans limite
-            const usersQuerySimple = query(collection(db, "users"));
+            const usersQuerySimple = query(collection(firestoreDb, "users"));
             const snapshot = await getDocs(usersQuerySimple);
             
             snapshot.docs.forEach((doc) => {
