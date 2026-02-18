@@ -37,15 +37,17 @@ export default function AuthButton() {
       return;
     }
 
+    const firebaseAuth = auth;
+
     // Vérifier l'état actuel immédiatement
-    if (auth.currentUser) {
+    if (firebaseAuth.currentUser) {
       setTimeout(() => {
-        setUser(auth.currentUser);
+        setUser(firebaseAuth.currentUser);
         setLoading(false);
       }, 0);
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
       // Réinitialiser l'erreur d'image quand l'utilisateur change
@@ -111,7 +113,15 @@ export default function AuthButton() {
       router.push("/u/dashboard");
     } catch (error: unknown) {
       // Ignorer silencieusement l'erreur si l'utilisateur ferme la popup
-      if (error.code === 'auth/popup-closed-by-user') {
+      const authErrorCode =
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        typeof (error as { code?: unknown }).code === "string"
+          ? (error as { code: string }).code
+          : null;
+
+      if (authErrorCode === "auth/popup-closed-by-user") {
         // L'utilisateur a simplement fermé la popup, ce n'est pas une erreur
         setLoading(false);
         return;

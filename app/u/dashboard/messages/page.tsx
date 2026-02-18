@@ -190,7 +190,8 @@ export default function MessagesPage() {
   }, [messages, currentUser, selectedUserId]);
 
   useEffect(() => {
-    if (!db || !currentUser || !selectedUserId || currentConversation.length === 0) {
+    const firestore = db;
+    if (!firestore || !currentUser || !selectedUserId || currentConversation.length === 0) {
       return;
     }
 
@@ -201,7 +202,7 @@ export default function MessagesPage() {
 
     void Promise.all(
       unreadInConversation.map((message) =>
-        updateDoc(doc(db, "privateMessages", message.id), { read: true })
+        updateDoc(doc(firestore, "privateMessages", message.id), { read: true })
       )
     ).catch((error) => {
       console.error("Erreur marquage lu:", error);
