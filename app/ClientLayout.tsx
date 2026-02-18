@@ -10,6 +10,7 @@ import { ToastProvider } from "@/components/ToastContainer";
 import { BannerProvider } from "@/context/BannerContext";
 import { usePathname } from "next/navigation";
 import StructuredData from "@/components/StructuredData";
+import PWARegister from "@/components/PWARegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,12 +29,15 @@ export default function ClientLayout({
 }) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/u");
+  const isProjectPage = pathname?.startsWith("/projets");
+  const shouldUseLenis = !isDashboard && !isProjectPage;
 
   return (
     <body
       className={`${geistSans.variable} ${geistMono.variable} antialiased font-sans`}
       suppressHydrationWarning
     >
+      <PWARegister />
       <StructuredData />
       <BannerProvider>
         <ToastProvider>
@@ -51,7 +55,7 @@ export default function ClientLayout({
           {!isDashboard && <Navbar />}
 
           <main>
-            {!isDashboard ? (
+            {shouldUseLenis ? (
               <LenisScroll>
                 <ScrollLinked />
                 {children}

@@ -124,12 +124,12 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Cacher la barre de défilement */
-  html {
+  /* Cacher la barre de défilement globalement */
+  * {
     scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE et Edge */
+    -ms-overflow-style: none; /* IE et Edge legacy */
   }
-  html::-webkit-scrollbar {
+  *::-webkit-scrollbar {
     display: none; /* Chrome, Safari et Opera */
   }
 }
@@ -174,4 +174,14 @@
   );
   background-size: 15px 15px;
   background-color: rgba(71, 212, 255, 0);
+}
+
+/* Masque la barre tout en conservant le scroll */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
 }

@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebaseClient";
-import projectsData from "@/data/projects.json";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -37,17 +36,7 @@ interface DetailedProject {
   stars?: number;
   forks?: number;
   demoUrl?: string;
-  roadmap?: string[];
   captures?: string[];
-}
-
-interface StaticProject {
-  id: number;
-  name: string;
-  description: string;
-  link: string;
-  technologies: string[];
-  author: string;
 }
 
 function normalizeCaptureUrls(value: unknown): string[] {
@@ -63,13 +52,6 @@ function normalizeCaptureUrls(value: unknown): string[] {
     .map((item) => item.trim())
     .filter((item) => /^https?:\/\//i.test(item));
 }
-
-const DEFAULT_ROADMAP = [
-  "Clarifier les specs produit",
-  "Ajouter une suite de tests critiques",
-  "Finaliser la documentation developpeur",
-  "Stabiliser le deploiement",
-];
 
 function parseGithubRepo(url: string) {
   const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
@@ -306,28 +288,11 @@ export default function ProjectDetailPage() {
               stars: (data.stars as number) || 0,
               forks: (data.forks as number) || 0,
               demoUrl: data.demoUrl as string | undefined,
-              roadmap: data.roadmap as string[] | undefined,
               captures: normalizeCaptureUrls(data.captures),
             };
           }
         } catch (error) {
           console.error("Erreur chargement projet Firestore:", error);
-        }
-      }
-
-      if (!foundProject) {
-        const staticProject = (projectsData as StaticProject[]).find(
-          (item) => String(item.id) === projectId
-        );
-        if (staticProject) {
-          foundProject = {
-            id: String(staticProject.id),
-            title: staticProject.name,
-            description: staticProject.description,
-            repoUrl: staticProject.link,
-            technologies: staticProject.technologies || [],
-            authorName: staticProject.author || "Auteur inconnu",
-          };
         }
       }
 
@@ -465,16 +430,6 @@ export default function ProjectDetailPage() {
     void loadProjectExtras();
   }, [project]);
 
-  const roadmap = useMemo(() => {
-    if (!project) return DEFAULT_ROADMAP;
-    if (project.roadmap && project.roadmap.length > 0) return project.roadmap;
-
-    const techRoadmap = (project.technologies || []).slice(0, 3).map(
-      (tech) => `Consolider le module ${tech}`
-    );
-    return [...techRoadmap, ...DEFAULT_ROADMAP].slice(0, 5);
-  }, [project]);
-
   if (loading) {
     return <ProjectDetailSkeleton />;
   }
@@ -593,22 +548,6 @@ export default function ProjectDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-2">
-            <CardHeader className="pb-2">
-              <CardTitle>Roadmap</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-2">
-              {roadmap.map((item, index) => (
-                <div
-                  key={`${item}-${index}`}
-                  className="flex items-start gap-3 rounded-lg border bg-background p-3"
-                >
-                  <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                  <p className="text-sm leading-6">{item}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
         </div>
 
         <div className="space-y-6">

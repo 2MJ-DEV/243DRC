@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ClientLayout from "./ClientLayout";
 
@@ -8,6 +8,8 @@ const siteDescription = "Découvrez, partagez et contribuez aux projets open-sou
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  manifest: "/manifest.webmanifest",
+  applicationName: "243 DRC",
   title: {
     default: siteName,
     template: `%s | ${siteName}`,
@@ -85,9 +87,22 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteUrl,
   },
+  icons: {
+    icon: "/flag-rdc.png",
+    apple: "/flag-rdc.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "243 DRC",
+  },
   other: {
     "linkedin:owner": "243DRC",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#007FFF",
 };
 
 export default function RootLayout({

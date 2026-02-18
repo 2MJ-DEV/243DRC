@@ -1,8 +1,12 @@
-// lib/firebaseClient.ts
 "use client";
 
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  Auth,
+} from "firebase/auth";
 import { getFirestore, Firestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -14,7 +18,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Vérifier que toutes les variables sont définies et non vides
 const isConfigValid = Object.values(firebaseConfig).every(
   (value) => typeof value === "string" && value.trim().length > 0
 );
@@ -23,32 +26,31 @@ if (!isConfigValid) {
   console.error("Firebase configuration is incomplete. Check your .env file.");
 }
 
-// Initialize Firebase
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 let db: Firestore | undefined;
 let googleProvider: GoogleAuthProvider | undefined;
+let githubProvider: GithubAuthProvider | undefined;
 
 if (typeof window !== "undefined" && isConfigValid) {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
   auth = getAuth(app);
   db = getFirestore(app);
-  
-  // Activer la persistence offline pour Firestore
+
   enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
-    } else if (err.code === 'unimplemented') {
-      console.warn('The current browser does not support persistence.');
+    if (err.code === "failed-precondition") {
+      console.warn("Multiple tabs open, persistence can only be enabled in one tab.");
+    } else if (err.code === "unimplemented") {
+      console.warn("The current browser does not support persistence.");
     }
   });
-  
+
   googleProvider = new GoogleAuthProvider();
-  
-  // Configuration du provider Google
-  googleProvider.setCustomParameters({
-    prompt: 'select_account'
-  });
+  googleProvider.setCustomParameters({ prompt: "select_account" });
+
+  githubProvider = new GithubAuthProvider();
+  githubProvider.setCustomParameters({ allow_signup: "true" });
 }
 
-export { auth, db, googleProvider, app };
+export { app, auth, db, googleProvider, githubProvider };
+
