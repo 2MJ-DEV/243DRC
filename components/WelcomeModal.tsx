@@ -1,163 +1,143 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { X, Rocket, Terminal, UserCheck, Lightbulb } from 'lucide-react';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, X } from "lucide-react";
 
 interface WelcomeModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (dontShowAgain: boolean) => void;
 }
 
 export function WelcomeModal({ isOpen, onClose }: WelcomeModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => setIsVisible(true), 50);
-    } else {
-      setTimeout(() => setIsVisible(false), 0);
-    }
+    if (!isOpen) return;
+    const id = setTimeout(() => setIsVisible(true), 20);
+    setDontShowAgain(true);
+    setIsClosing(false);
+    return () => clearTimeout(id);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const requestClose = () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setIsVisible(false);
+    setTimeout(() => {
+      onClose(dontShowAgain);
+    }, 180);
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 py-8 sm:py-12 lg:py-16">
-      {/* Overlay avec blur */}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
-          isVisible ? 'opacity-100' : 'opacity-0'
+        aria-label="Fermer"
+        className={`absolute inset-0 z-0 bg-black/55 backdrop-blur-sm transition-opacity duration-200 ${
+          isVisible ? "opacity-100" : "opacity-0"
         }`}
-        onClick={onClose}
+        onClick={requestClose}
       />
 
-      {/* Modal */}
       <div
-        className={`relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full mx-2 sm:mx-4 max-h-[80vh] h-auto sm:h-[580px] lg:h-[1500px] transform transition-all duration-300 ${
-          isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
+        onClick={(event) => event.stopPropagation()}
+        className={`relative z-10 w-full max-w-xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl transition-all duration-300 ${
+          isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-2 scale-[0.98]"
         }`}
       >
-        {/* Bouton de fermeture */}
+        <div className="pointer-events-none absolute -top-24 -left-14 h-44 w-44 rounded-full bg-[#007FFF]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -right-8 h-40 w-40 rounded-full bg-[#EFDA5B]/25 blur-3xl" />
+        <div className="pointer-events-none absolute top-1/2 right-1/3 h-24 w-24 rounded-full bg-[#CA3E4B]/20 blur-2xl" />
+
         <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 z-10"
+          type="button"
+          onClick={requestClose}
+          className="absolute z-20 right-3 top-3 rounded-md p-2 text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 active:scale-95"
           aria-label="Fermer"
         >
-          <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          <X className="h-5 w-5" />
         </button>
 
-        <div className="flex flex-col lg:flex-row h-full overflow-hidden">
-          {/* Section texte (gauche sur desktop, haut sur mobile) */}
-          <div className="flex-1 px-4 sm:px-8 py-6 sm:py-8 lg:pr-4 flex flex-col">
-            {/* En-tête avec logo */}
-            <div className="text-center mb-4 sm:mb-6 mt-2 sm:mt-4">
-              <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-2 bg-gray-800 dark:bg-gray-700 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-2xl sm:text-4xl font-bold text-white">243</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
-                Bienvenue sur 243 DRC
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed mb-3 sm:mb-4">
-                Découvrez, partagez et contribuez aux projets open-source de la communauté tech congolaise.
-              </p>
-              <div className="space-y-2 sm:space-y-3 text-left">
-                <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h3 className="font-semibold text-[#007FFF] dark:text-blue-300 mb-1 text-xs sm:text-sm flex items-center gap-2">
-                    <Lightbulb className="w-3 h-3 sm:w-4 sm:h-4" />
-                    Innovation Technologique
-                  </h3>
-                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                    Explorez les projets open-source créés par la communauté tech congolaise.
-                  </p>
-                </div>
+        <div className="relative p-6 sm:p-8">
+          <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl shadow-lg ring-4 ring-blue-200">
+            <Image
+              src="/flag-rdc.png"
+              alt="Drapeau RDC"
+              width={26}
+              height={16}
+              className="rounded-sm"
+            />
+          </div>
 
-                <div className="p-2 sm:p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <h3 className="font-semibold text-[#EFDA5B] dark:text-yellow-300 mb-1 text-xs sm:text-sm flex items-center gap-2">
-                    <UserCheck className="w-3 h-3 sm:w-4 sm:h-4" />
-                    Collaboration Ouverte
-                  </h3>
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                    Rejoignez une communauté passionnée unie par la passion du code ouvert et de l&#39;innovation.
-                  </p>
-                </div>
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
+            Bienvenue sur 243 DRC
+          </h2>
+          <p className="mt-2 text-slate-700 leading-7">
+            Decouvrez des projets, collaborez avec la communaute tech congolaise et publiez vos
+            propres realisations.
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Commencez par explorer, puis completez votre profil pour mieux connecter avec la communaute.
+          </p>
 
-                <div className="p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                  <h3 className="font-semibold text-[#CA3E4B] dark:text-red-300 mb-1 text-xs sm:text-sm flex items-center gap-2">
-                    <Rocket className="w-3 h-3 sm:w-4 sm:h-4" />
-                    Impact Local
-                  </h3>
-                  <p className="text-xs text-red-600 dark:text-red-400">
-                    Vos contributions ont un impact direct sur l&#39;écosystème numérique congolais et africain dans son ensemble.
-                  </p>
-                </div>
-              </div>
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2 text-xs font-medium text-blue-800">
+              Projets reels
             </div>
-
-            {/* Boutons d'action */}
-            <div className="space-y-3 mt-auto">
-              <button
-                onClick={onClose}
-                className="w-full px-6 py-3.5 bg-[#007FFF] hover:bg-[#0066CC] text-white text-base font-semibold rounded-xl transition-all duration-200"
-              >
-                Commencer l&#39;exploration
-              </button>
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs font-medium text-amber-800">
+              Contributions ouvertes
+            </div>
+            <div className="rounded-xl border border-rose-200 bg-rose-50/70 px-3 py-2 text-xs font-medium text-rose-800">
+              Impact local
             </div>
           </div>
 
-          {/* Section illustration (droite sur desktop, bas sur mobile) */}
-          <div className="flex-1 px-4 sm:px-8 py-6 sm:py-8 lg:pl-4 flex flex-col">
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-3 sm:p-4 border border-gray-200 dark:border-gray-700 h-full flex items-center justify-center">
-              <div className="space-y-3 sm:space-y-4 w-full max-w-sm mx-auto">
-                {/* Feature 1: Code */}
-                <div className="flex items-center space-x-2 sm:space-x-3 p-2 bg-white dark:bg-gray-700 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-[#007FFF] rounded-lg">
-                    <Terminal className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="h-2 sm:h-2.5 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-1"></div>
-                    <div className="h-1.5 sm:h-2 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                  </div>
-                </div>
+          <label className="mt-5 flex items-center gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={dontShowAgain}
+              onChange={(event) => setDontShowAgain(event.target.checked)}
+              className="h-4 w-4 rounded border-slate-300 text-[#007FFF] focus:ring-[#007FFF]"
+            />
+            Ne plus afficher ce message
+          </label>
 
-                {/* Feature 2: Community */}
-                <div className="flex items-center space-x-2 sm:space-x-3 p-2 bg-white dark:bg-gray-700 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-[#EFDA5B] rounded-lg">
-                    <UserCheck className="w-4 h-4 sm:w-5 sm:h-5 text-gray-900" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="h-2 sm:h-2.5 bg-gray-300 dark:bg-gray-600 rounded w-2/3 mb-1"></div>
-                    <div className="h-1.5 sm:h-2 bg-gray-200 dark:bg-gray-700 rounded w-5/12"></div>
-                  </div>
-                </div>
-
-                {/* Feature 3: Innovation */}
-                <div className="flex items-center space-x-2 sm:space-x-3 p-2 bg-white dark:bg-gray-700 rounded-lg shadow-sm">
-                  <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-[#CA3E4B] rounded-lg">
-                    <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="h-2 sm:h-2.5 bg-gray-300 dark:bg-gray-600 rounded w-4/5 mb-1"></div>
-                    <div className="h-1.5 sm:h-2 bg-gray-200 dark:bg-gray-700 rounded w-7/12"></div>
-                  </div>
-                </div>
-
-                {/* Additional visual element */}
-                <div className="mt-4 sm:mt-6 p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center justify-center space-x-2 text-[#007FFF] dark:text-blue-400">
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#007FFF] rounded-full animate-pulse"></div>
-                    <span className="text-xs font-medium">Plateforme active</span>
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-[#007FFF] rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link
+              href="/explorer-les-projets"
+              onClick={requestClose}
+              className="inline-flex w-full justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-[#007FFF] to-[#0066CC] px-4 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:shadow-xl hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007FFF]/40 active:translate-y-0 active:scale-[0.98]"
+            >
+              Explorer la plateforme
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/u/dashboard/ajouter-projet"
+              onClick={requestClose}
+              className="inline-flex w-full justify-center items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-slate-400 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 active:translate-y-0 active:scale-[0.98]"
+            >
+              Publier un projet
+            </Link>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-
-
-

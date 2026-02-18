@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { User } from "firebase/auth";
 import {
   addDoc,
   collection,
   doc,
-  getDocs,
   onSnapshot,
   query,
   updateDoc,
@@ -34,6 +33,8 @@ interface UserProfile {
   uid: string;
   displayName: string;
   email: string;
+  isOnline?: boolean;
+  lastActiveAt?: unknown;
 }
 
 interface PrivateMessage {
@@ -46,6 +47,69 @@ interface PrivateMessage {
   text: string;
   createdAt: string;
   read: boolean;
+}
+
+interface OpenGraphPreview {
+  url: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  siteName?: string;
+}
+
+const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
+
+function normalizeUrl(rawUrl: string): string {
+  return rawUrl.replace(/[),.;!?]+$/, "");
+}
+
+function extractLinks(text: string): string[] {
+  return (text.match(URL_REGEX) || []).map(normalizeUrl);
+}
+
+function renderMessageTextWithLinks(text: string): ReactNode[] {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+
+  return parts.map((part, index) => {
+    if (!/^https?:\/\//i.test(part)) {
+      return <span key={`txt-${index}`}>{part}</span>;
+    }
+
+    const cleanUrl = normalizeUrl(part);
+    const trailing = part.slice(cleanUrl.length);
+
+    return (
+      <span key={`link-${index}`}>
+        <a
+          href={cleanUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-600 underline decoration-emerald-400 underline-offset-2 hover:text-emerald-700"
+        >
+          {cleanUrl}
+        </a>
+        {trailing}
+      </span>
+    );
+  });
+}
+
+function toMillis(value: unknown): number | null {
+  if (!value) return null;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const time = new Date(value).getTime();
+    return Number.isNaN(time) ? null : time;
+  }
+  if (typeof value === "object" && value !== null) {
+    if ("toMillis" in value && typeof (value as { toMillis?: unknown }).toMillis === "function") {
+      return ((value as { toMillis: () => number }).toMillis());
+    }
+    if ("seconds" in value && typeof (value as { seconds?: unknown }).seconds === "number") {
+      return (value as { seconds: number }).seconds * 1000;
+    }
+  }
+  return null;
 }
 
 export default function MessagesPage() {
@@ -61,7 +125,18 @@ export default function MessagesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [presenceNow, setPresenceNow] = useState(() => Date.now());
+  const [linkPreviews, setLinkPreviews] = useState<Record<string, OpenGraphPreview | null>>({});
   const isFirstSnapshot = useRef(true);
+  const requestedPreviewUrls = useRef(new Set<string>());
+
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      setPresenceNow(Date.now());
+    }, 15_000);
+
+    return () => clearInterval(timerId);
+  }, []);
 
   useEffect(() => {
     if (!auth) {
@@ -88,20 +163,28 @@ export default function MessagesPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    const loadUsers = async () => {
-      if (!db || !currentUser) return;
+    if (!db || !currentUser) return;
 
-      try {
-        const usersSnapshot = await getDocs(query(collection(db, "users")));
+    const usersQuery = query(collection(db, "users"));
+    const unsubscribe = onSnapshot(
+      usersQuery,
+      (usersSnapshot) => {
         const usersList = usersSnapshot.docs
-          .map((userDoc) => ({
-            uid: userDoc.id,
-            displayName: (userDoc.data().displayName as string) || "Utilisateur",
-            email: (userDoc.data().email as string) || "",
-          }))
+          .map((userDoc) => {
+            const data = userDoc.data();
+            return {
+              uid: userDoc.id,
+              displayName: (data.displayName as string) || "Utilisateur",
+              email: (data.email as string) || "",
+              isOnline: Boolean(data.isOnline),
+              lastActiveAt: data.lastActiveAt,
+            };
+          })
           .filter((user) => user.uid !== currentUser.uid);
+
         setUsers(usersList);
-      } catch (error: unknown) {
+      },
+      (error: unknown) => {
         console.error("Erreur chargement contacts:", error);
         const firestoreError = error as { code?: string };
         showError(
@@ -109,9 +192,9 @@ export default function MessagesPage() {
           `Impossible de charger les contacts (${firestoreError.code || "unknown"})`
         );
       }
-    };
+    );
 
-    void loadUsers();
+    return () => unsubscribe();
   }, [currentUser, showError]);
 
   useEffect(() => {
@@ -258,15 +341,112 @@ export default function MessagesPage() {
     });
   }, [users, searchTerm]);
 
-  const selectedConversationMeta = useMemo(() => {
-    if (!selectedUserId) return null;
-    return conversations.find((item) => item.otherId === selectedUserId) || null;
-  }, [conversations, selectedUserId]);
+  const sharedStats = useMemo(() => {
+    const documentExt = new Set([
+      "pdf",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "ppt",
+      "pptx",
+      "txt",
+      "csv",
+      "zip",
+      "rar",
+      "7z",
+    ]);
+    const photoExt = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "heic"]);
+    const movieExt = new Set(["mp4", "mov", "avi", "mkv", "webm", "m4v", "wmv"]);
+
+    let documents = 0;
+    let photos = 0;
+    let movies = 0;
+    let other = 0;
+    let totalLinks = 0;
+
+    for (const message of currentConversation) {
+      const urls = extractLinks(message.text);
+      totalLinks += urls.length;
+
+      for (const rawUrl of urls) {
+        const cleanUrl = rawUrl.replace(/[),.;!?]+$/, "");
+        const extMatch = cleanUrl.toLowerCase().match(/\.([a-z0-9]+)(?:[?#]|$)/);
+        const ext = extMatch?.[1];
+
+        if (!ext) {
+          other += 1;
+          continue;
+        }
+
+        if (documentExt.has(ext)) {
+          documents += 1;
+        } else if (photoExt.has(ext)) {
+          photos += 1;
+        } else if (movieExt.has(ext)) {
+          movies += 1;
+        } else {
+          other += 1;
+        }
+      }
+    }
+
+    return {
+      documents,
+      photos,
+      movies,
+      other,
+      totalLinks,
+      totalFiles: documents + photos + movies,
+    };
+  }, [currentConversation]);
+
+  useEffect(() => {
+    const uniqueLinks = Array.from(
+      new Set(currentConversation.flatMap((message) => extractLinks(message.text)))
+    );
+
+    const linksToFetch = uniqueLinks.filter((url) => !requestedPreviewUrls.current.has(url));
+    if (linksToFetch.length === 0) return;
+
+    linksToFetch.forEach((url) => requestedPreviewUrls.current.add(url));
+
+    void Promise.all(
+      linksToFetch.map(async (url) => {
+        try {
+          const response = await fetch(`/api/opengraph?url=${encodeURIComponent(url)}`);
+          if (!response.ok) return { url, preview: null as OpenGraphPreview | null };
+          const preview = (await response.json()) as OpenGraphPreview;
+          return { url, preview };
+        } catch {
+          return { url, preview: null as OpenGraphPreview | null };
+        }
+      })
+    ).then((results) => {
+      setLinkPreviews((previous) => {
+        const next = { ...previous };
+        results.forEach(({ url, preview }) => {
+          next[url] = preview;
+        });
+        return next;
+      });
+    });
+  }, [currentConversation]);
 
   const selectedUserInitial =
     selectedUser?.displayName?.[0]?.toUpperCase() ||
     selectedUser?.email?.[0]?.toUpperCase() ||
     "?";
+
+  const selectedUserIsOnline = useMemo(() => {
+    if (!selectedUser) return false;
+    if (!selectedUser.isOnline) return false;
+
+    const lastActiveAtMs = toMillis(selectedUser.lastActiveAt);
+    if (!lastActiveAtMs) return selectedUser.isOnline;
+
+    return presenceNow - lastActiveAtMs < 90_000;
+  }, [presenceNow, selectedUser]);
 
   const handleSend = async () => {
     if (!db || !currentUser || !selectedUser) return;
@@ -369,7 +549,10 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+          <div
+            className="hide-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pr-1"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
             {filteredUsers.map((user) => {
               const conversation = conversations.find((item) => item.otherId === user.uid);
               const last = conversation?.message;
@@ -427,7 +610,9 @@ export default function MessagesPage() {
                   </div>
                   <div>
                     <p className="font-semibold">{selectedUser.displayName}</p>
-                    <p className="text-xs text-emerald-600">En ligne</p>
+                    <p className={`text-xs ${selectedUserIsOnline ? "text-emerald-600" : "text-slate-500"}`}>
+                      {selectedUserIsOnline ? "En ligne" : "Hors ligne"}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-slate-500">
@@ -446,7 +631,10 @@ export default function MessagesPage() {
                 </button>
               </div>
 
-              <div className="flex-1 space-y-3 overflow-y-auto bg-slate-100/50 px-4 py-4">
+              <div
+                className="hide-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-100/50 px-4 py-4"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
                 {currentConversation.length === 0 ? (
                   <p className="rounded-xl border bg-white p-3 text-sm text-slate-500">
                     Aucun message. Lancez la conversation.
@@ -454,6 +642,7 @@ export default function MessagesPage() {
                 ) : (
                   currentConversation.map((message) => {
                     const isMine = message.senderId === currentUser.uid;
+                    const messageLinks = Array.from(new Set(extractLinks(message.text)));
                     return (
                       <div key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
                         <div
@@ -463,7 +652,51 @@ export default function MessagesPage() {
                               : "border bg-white text-slate-700"
                           }`}
                         >
-                          {message.text}
+                          <p className="whitespace-pre-wrap break-words">
+                            {renderMessageTextWithLinks(message.text)}
+                          </p>
+
+                          {messageLinks.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {messageLinks.map((url) => {
+                                const preview = linkPreviews[url];
+                                if (!preview) return null;
+
+                                return (
+                                  <a
+                                    key={url}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block rounded-lg border bg-white/80 p-2 hover:bg-white"
+                                  >
+                                    <div className="flex gap-2">
+                                      {preview.image ? (
+                                        <img
+                                          src={preview.image}
+                                          alt={preview.title || "Apercu du lien"}
+                                          className="h-14 w-14 rounded-md object-cover"
+                                        />
+                                      ) : null}
+                                      <div className="min-w-0">
+                                        <p className="truncate text-xs font-semibold text-slate-800">
+                                          {preview.title || url}
+                                        </p>
+                                        {preview.description ? (
+                                          <p className="line-clamp-2 text-xs text-slate-500">
+                                            {preview.description}
+                                          </p>
+                                        ) : null}
+                                        <p className="truncate text-[11px] text-slate-400">
+                                          {preview.siteName || new URL(url).hostname}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -514,7 +747,10 @@ export default function MessagesPage() {
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
+          <div
+            className="hide-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto pr-1"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
             {selectedUser ? (
               <div className="rounded-xl border bg-slate-50 p-4 text-center">
                 <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-slate-200 text-xl font-semibold text-slate-700">
@@ -522,9 +758,21 @@ export default function MessagesPage() {
                 </div>
                 <p className="font-semibold">{selectedUser.displayName}</p>
                 <p className="text-xs text-slate-500">{selectedUser.email || "Membre de la plateforme"}</p>
-                <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700">
-                  <Circle className="h-3 w-3 fill-emerald-500 text-emerald-500" />
-                  En ligne
+                <div
+                  className={`mt-3 inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${
+                    selectedUserIsOnline
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  <Circle
+                    className={`h-3 w-3 ${
+                      selectedUserIsOnline
+                        ? "fill-emerald-500 text-emerald-500"
+                        : "fill-slate-400 text-slate-400"
+                    }`}
+                  />
+                  {selectedUserIsOnline ? "En ligne" : "Hors ligne"}
                 </div>
               </div>
             ) : (
@@ -535,14 +783,12 @@ export default function MessagesPage() {
 
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-xl border bg-emerald-50 p-3">
-                <p className="text-xs text-slate-500">All files</p>
-                <p className="mt-1 text-2xl font-semibold">{currentConversation.length}</p>
+                <p className="text-xs text-slate-500">Tous les fichiers</p>
+                <p className="mt-1 text-2xl font-semibold">{sharedStats.totalFiles}</p>
               </div>
               <div className="rounded-xl border bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">All links</p>
-                <p className="mt-1 text-2xl font-semibold">
-                  {currentConversation.filter((message) => message.text.includes("http")).length}
-                </p>
+                <p className="text-xs text-slate-500">Tous les liens</p>
+                <p className="mt-1 text-2xl font-semibold">{sharedStats.totalLinks}</p>
               </div>
             </div>
 
@@ -555,30 +801,28 @@ export default function MessagesPage() {
                   <Files className="h-4 w-4 text-indigo-500" />
                   Documents
                 </div>
-                <span className="text-xs text-slate-500">126 files</span>
+                <span className="text-xs text-slate-500">{sharedStats.documents} fichiers</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-2">
                 <div className="flex items-center gap-2 text-sm">
                   <ImageIcon className="h-4 w-4 text-emerald-500" />
                   Photos
                 </div>
-                <span className="text-xs text-slate-500">53 files</span>
+                <span className="text-xs text-slate-500">{sharedStats.photos} fichiers</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Video className="h-4 w-4 text-amber-500" />
                   Movies
                 </div>
-                <span className="text-xs text-slate-500">31 files</span>
+                <span className="text-xs text-slate-500">{sharedStats.movies} fichiers</span>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Link2 className="h-4 w-4 text-sky-500" />
                   Other
                 </div>
-                <span className="text-xs text-slate-500">
-                  {selectedConversationMeta ? selectedConversationMeta.unreadCount : 0} pending
-                </span>
+                <span className="text-xs text-slate-500">{sharedStats.other} liens</span>
               </div>
             </div>
           </div>
